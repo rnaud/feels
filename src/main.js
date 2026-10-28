@@ -1,8 +1,10 @@
 import * as THREE from 'three';
+import { Ambience } from './ambience.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import './style.css';
 import { createHatchedPaper, sketchEdges } from './ink.js';
 import { createAdditionalScenes } from './scenes.js';
+import { createReferenceScenes } from './reference-scenes.js';
 
 const INK = 0x171717, PAPER = 0xffffff;
 const ink = new THREE.MeshBasicMaterial({ color: INK });
@@ -21,7 +23,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(64, 1, .04, 120);
 const root = new THREE.Group();
 scene.add(root);
-const animations = { home: [], paris: [], train: [], cabin: [], seaside: [], bookstore: [] };
+const animations = { home: [], paris: [], train: [], cabin: [], seaside: [], bookstore: [], homeStudy: [], parisStudy: [] };
 let activeScene = 'home';
 let randomSeed = 37;
 function random() { randomSeed = (randomSeed * 16807) % 2147483647; return (randomSeed - 1) / 2147483646; }
@@ -214,7 +216,10 @@ const sceneDefinitions={
  ...additionalScenes,
 };
 // Create each world once, only when first visited; inactive scenes never animate.
-const worlds={home:makeHome()};
+const referenceStudies=createReferenceScenes({root,paper,ink,animations,group,box,roundBox,sphere,cylinder,line,curve,rod,ring,label,mug,book,random});
+let studyEnabled=true;
+const studyWorlds={home:referenceStudies.home.make()};
+const worlds={};
 const views=Object.fromEntries(Object.entries(sceneDefinitions).map(([key,d])=>[key,{eye:new THREE.Vector3(...d.eye),yaw:d.yaw,pitch:d.pitch}]));
 const sceneList=document.querySelector('#scene-list');
 Object.entries(sceneDefinitions).forEach(([key,d],index)=>{
@@ -235,50 +240,50 @@ function release(){dragging=false;}canvas.addEventListener('pointerup',release);
 function reset(immediate=false){targetYaw=targetPitch=pointerX=pointerY=0;if(immediate){yaw=pitch=0;}dragging=false;}
 document.querySelector('#reset-view').addEventListener('click',()=>reset());
 canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(e.key))return;e.preventDefault();if(e.key==='Home')reset();if(e.key==='ArrowLeft')targetYaw-=.08;if(e.key==='ArrowRight')targetYaw+=.08;if(e.key==='ArrowUp')targetPitch+=.06;if(e.key==='ArrowDown')targetPitch-=.06;clampGaze();});
+const studySwitch=document.querySelector('#study-switch');
+const referenceDialog=document.querySelector('#reference-dialog');
+function applyLook(){
+ const study=studyEnabled&&referenceStudies[activeScene];
+ if(study&&!studyWorlds[activeScene])studyWorlds[activeScene]=study.make();
+ if(!study&&!worlds[activeScene])worlds[activeScene]=sceneDefinitions[activeScene].make();
+ for(const [key,g]of Object.entries(worlds))g.visible=key===activeScene&&!study;
+ for(const [key,g]of Object.entries(studyWorlds))g.visible=key===activeScene&&!!study;
+ paper.userData.mood.value=sceneDefinitions[activeScene].mood;
+ referenceStudies.setMood(activeScene);
+ studySwitch.hidden=!referenceStudies[activeScene];
+ document.querySelector('#study-new').setAttribute('aria-pressed',studyEnabled);
+ document.querySelector('#study-earlier').setAttribute('aria-pressed',!studyEnabled);
+ reset(true);
+}
 function selectScene(key){
  if(!sceneDefinitions[key])return;
- activeScene=key;const definition=sceneDefinitions[key];
- if(!worlds[key])worlds[key]=definition.make();
- paper.userData.mood.value=definition.mood;
- for(const [name,world]of Object.entries(worlds))world.visible=name===key;
+ activeScene=key;const definition=sceneDefinitions[key];applyLook();
+ history.replaceState(null,'','?scene='+key);
+ document.querySelector('.edition-link').href=import.meta.env.BASE_URL+'illustrated/?scene='+(referenceStudies[key]?key:'home');
  for(const button of sceneList.querySelectorAll('[data-scene]')){const selected=button.dataset.scene===key;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',selected);}
  document.querySelector('#scene-coordinate').textContent=definition.place;
  document.querySelector('#scene-weather').textContent=definition.caption;
  document.querySelector('#moment-title').textContent=definition.moment;
  document.querySelector('#moment-index').textContent='FIG. '+String(Object.keys(sceneDefinitions).indexOf(key)+1).padStart(2,'0');
  canvas.setAttribute('aria-label',definition.description+' Drag or use arrow keys to look around.');
- reset(true);sound.setScene(key);
+ sound.setScene(key);
  if(matchMedia('(max-width: 700px)').matches)canvas.parentElement.scrollIntoView({behavior:reducedMotion?'instant':'smooth',block:'start'});
 }
 sceneList.addEventListener('click',event=>{const button=event.target.closest('[data-scene]');if(button)selectScene(button.dataset.scene);});
+document.querySelector('#study-new').addEventListener('click',()=>{studyEnabled=true;applyLook();});
+document.querySelector('#study-earlier').addEventListener('click',()=>{studyEnabled=false;applyLook();});
+document.querySelector('#show-reference').addEventListener('click',()=>{
+ const study=referenceStudies[activeScene];if(!study)return;
+ document.querySelector('#reference-title').textContent=sceneDefinitions[activeScene].title;
+ document.querySelector('#reference-image').src=import.meta.env.BASE_URL+study.reference;
+ document.querySelector('#reference-image').alt='Generated ink reference for '+sceneDefinitions[activeScene].title.toLowerCase();referenceDialog.showModal();
+});
+referenceDialog.querySelector('.close-dialog').addEventListener('click',()=>referenceDialog.close());
+referenceDialog.addEventListener('click',event=>{if(event.target===referenceDialog){const r=referenceDialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)referenceDialog.close();}});
 
 // All ambience is synthesized locally. No audio files or requests are needed.
-class Ambience {
- constructor(){this.ctx=null;this.enabled=false;this.volume=.4;this.nodes=[];this.timer=null;}
- init(){if(this.ctx)return;this.ctx=new AudioContext();this.master=this.ctx.createGain();this.master.gain.value=0;this.master.connect(this.ctx.destination);const length=this.ctx.sampleRate*4;this.noise=this.ctx.createBuffer(1,length,this.ctx.sampleRate);const data=this.noise.getChannelData(0);let brown=0;for(let i=0;i<length;i++){brown=(brown+(Math.random()*2-1)*.025)/1.025;data[i]=brown*8;}}
- layer(frequency,type,gain,swell=0){const source=this.ctx.createBufferSource();source.buffer=this.noise;source.loop=true;const filter=this.ctx.createBiquadFilter();filter.type=type;filter.frequency.value=frequency;const level=this.ctx.createGain();level.gain.value=swell?gain*.65:gain;source.connect(filter);filter.connect(level);level.connect(this.bus);source.start();this.nodes.push(source,filter,level);if(swell){const lfo=this.ctx.createOscillator();const depth=this.ctx.createGain();lfo.frequency.value=swell;depth.gain.value=gain*.35;lfo.connect(depth);depth.connect(level.gain);lfo.start();this.nodes.push(lfo,depth);}}
- rustle(frequency,duration,gain){if(!this.enabled||document.hidden)return;const source=this.ctx.createBufferSource(),filter=this.ctx.createBiquadFilter(),amp=this.ctx.createGain(),now=this.ctx.currentTime;source.buffer=this.noise;filter.type='bandpass';filter.frequency.value=frequency;filter.Q.value=.7;amp.gain.setValueAtTime(0,now);amp.gain.linearRampToValueAtTime(gain,now+Math.min(.03,duration*.2));amp.gain.exponentialRampToValueAtTime(.0001,now+duration);source.connect(filter);filter.connect(amp);amp.connect(this.bus);source.start(now,Math.random()*2);source.stop(now+duration);source.onended=()=>{source.disconnect();filter.disconnect();amp.disconnect();};}
- setScene(name){if(!this.ctx)return;clearTimeout(this.timer);const old=this.nodes;const oldBus=this.bus;if(oldBus){oldBus.gain.setTargetAtTime(0,this.ctx.currentTime,.15);setTimeout(()=>{for(const n of old){if(n.stop)try{n.stop();}catch{}n.disconnect();}oldBus.disconnect();},800);}this.nodes=[];this.bus=this.ctx.createGain();this.bus.gain.value=0;this.bus.connect(this.master);this.bus.gain.setTargetAtTime(1,this.ctx.currentTime,.3);
- const layers={home:[[1700,'lowpass',.62],[2800,'highpass',.2]],paris:[[430,'lowpass',.2],[950,'bandpass',.045]],train:[[180,'lowpass',.48,1.3],[1500,'lowpass',.15]],cabin:[[650,'lowpass',.28,.18],[2700,'highpass',.055]],seaside:[[1150,'lowpass',.52,.12],[2300,'highpass',.14,.12]],bookstore:[[280,'lowpass',.035]]};for(const args of layers[name])this.layer(...args);this.schedule(name);}
- tone(frequency,duration,gain,type='sine'){if(!this.enabled||document.hidden)return;const now=this.ctx.currentTime;const osc=this.ctx.createOscillator();const amp=this.ctx.createGain();osc.type=type;osc.frequency.setValueAtTime(frequency,now);amp.gain.setValueAtTime(0,now);amp.gain.linearRampToValueAtTime(gain,now+.015);amp.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.connect(amp);amp.connect(this.bus);osc.start();osc.stop(now+duration);osc.onended=()=>{osc.disconnect();amp.disconnect();};}
- schedule(name){
-  if(!this.enabled)return;
-  const delays={home:()=>200+Math.random()*800,paris:()=>2200+Math.random()*4200,train:()=>690,cabin:()=>350+Math.random()*1400,seaside:()=>8000+Math.random()*8000,bookstore:()=>1000};
-  this.timer=setTimeout(()=>{
-   if(name==='home')this.tone(700+Math.random()*900,.07,.013);
-   if(name==='paris'){this.tone(1800+Math.random()*700,.35,.025);this.tone(3100,.16,.009);}
-   if(name==='train'){this.tone(85,.11,.06);this.rustle(380,.09,.09);}
-   if(name==='cabin')this.rustle(1200+Math.random()*1800,.025+Math.random()*.08,.11);
-   if(name==='seaside'){this.tone(1300+Math.random()*300,.5,.009);}
-   if(name==='bookstore'){this.tone(650,.018,.006);if(Math.random()<.055)this.rustle(1700,.45,.07);}
-   this.schedule(name);
-  },delays[name]());
- }
- async toggle(){this.init();await this.ctx.resume();this.enabled=!this.enabled;this.master.gain.setTargetAtTime(this.enabled?this.volume:0,this.ctx.currentTime,.25);if(this.enabled)this.setScene(activeScene);else clearTimeout(this.timer);return this.enabled;}
- setVolume(value){this.volume=value;if(this.ctx)this.master.gain.setTargetAtTime(this.enabled?value:0,this.ctx.currentTime,.1);}
-}
 const sound=new Ambience();
-document.querySelector('#sound-toggle').addEventListener('click',async()=>{try{const enabled=await sound.toggle();document.body.classList.toggle('sound-on',enabled);document.querySelector('#sound-toggle').setAttribute('aria-pressed',enabled);document.querySelector('#sound-label').textContent=enabled?'A little atmosphere':'Sound is off';document.querySelector('.sound-state').textContent=enabled?'ON':'OFF';document.querySelector('#volume').hidden=!enabled;}catch{document.querySelector('#sound-label').textContent='Sound unavailable';}});
+document.querySelector('#sound-toggle').addEventListener('click',async()=>{try{const enabled=await sound.toggle(activeScene);document.body.classList.toggle('sound-on',enabled);document.querySelector('#sound-toggle').setAttribute('aria-pressed',enabled);document.querySelector('#sound-label').textContent=enabled?'A little atmosphere':'Sound is off';document.querySelector('.sound-state').textContent=enabled?'ON':'OFF';document.querySelector('#volume').hidden=!enabled;}catch{document.querySelector('#sound-label').textContent='Sound unavailable';}});
 document.querySelector('#volume').addEventListener('input',e=>sound.setVolume(Number(e.target.value)/100));
 document.addEventListener('visibilitychange',()=>{if(!sound.ctx)return;if(document.hidden)sound.ctx.suspend();else if(sound.enabled)sound.ctx.resume();});
 const about=document.querySelector('#about');document.querySelector('#about-button').addEventListener('click',()=>about.showModal());about.querySelector('.close-dialog').addEventListener('click',()=>about.close());about.addEventListener('click',e=>{if(e.target===about){const r=about.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)about.close();}});
@@ -289,11 +294,14 @@ function render(){
  const px=reducedMotion?0:pointerX*.22,py=reducedMotion?0:-pointerY*.14;
  const smoothing=reducedMotion?1:.065;
  yaw+=(targetYaw+px-yaw)*smoothing;pitch+=(targetPitch+py-pitch)*smoothing;
- const view=views[activeScene],heading=view.yaw+yaw,elevation=view.pitch+pitch;
- camera.position.copy(view.eye);
+ const study=studyEnabled&&referenceStudies[activeScene];
+ const view=study||views[activeScene],heading=view.yaw+yaw,elevation=view.pitch+pitch;
+ if(study)camera.position.fromArray(view.eye);else camera.position.copy(view.eye);
  cameraTarget.set(Math.sin(heading)*Math.cos(elevation),Math.sin(elevation),-Math.cos(heading)*Math.cos(elevation)).add(camera.position);
  camera.lookAt(cameraTarget);
- if(!reducedMotion)for(const fn of animations[activeScene])fn(elapsed);
+ if(!reducedMotion)for(const fn of animations[study?study.animation:activeScene])fn(elapsed);
  renderer.render(scene,camera);
 }
 render();document.querySelector('#loading').classList.add('loaded');
+
+const requestedScene=new URLSearchParams(location.search).get('scene');if(requestedScene&&sceneDefinitions[requestedScene])selectScene(requestedScene);

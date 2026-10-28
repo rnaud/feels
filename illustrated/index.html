@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#ffffff"/>
+  <meta name="description" content="Two quiet moments in living ink. An illustrated experiment by feels."/>
+  <title>feels — the illustrated edition</title>
+  <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg"/>
+</head>
+<body>
+  <header>
+    <a class="wordmark" href="%BASE_URL%" aria-label="Feels home">feels<span>✳</span></a>
+    <span class="edition">THE ILLUSTRATED EDITION</span>
+    <a id="compare" class="compare" href="%BASE_URL%">Visit the 3D edition <span>↗</span></a>
+  </header>
+  <main>
+    <aside>
+      <div class="eyebrow">A DIFFERENT WAY TO BE HERE</div>
+      <h1>A little ink.<br/>A little <em>life.</em></h1>
+      <p>Familiar places, softly moving.<br/>Let the world wait a minute.</p>
+      <nav aria-label="Choose an illustrated scene">
+        <div class="collection-label">FIND YOUR SOMEWHERE <span>01 — 02</span></div>
+        <button class="place active" data-scene="home" aria-pressed="true"><span class="number">01</span><span><strong>A rainy afternoon</strong><small>A warm cup. A world away.</small></span><span class="arrow">↗</span></button>
+        <button class="place" data-scene="paris" aria-pressed="false"><span class="number">02</span><span><strong>A café in Paris</strong><small>One coffee. All the time in the world.</small></span><span class="arrow">↗</span></button>
+      </nav>
+      <p class="aside-note">Stay as long as you like.</p>
+    </aside>
+    <section class="view" aria-label="Illustrated scene">
+      <div class="art-frame">
+        <canvas id="illustration" tabindex="0" aria-label="A rainy room in moving ink. Move your mouse, drag, or use arrow keys to gently shift your view."></canvas>
+        <div id="loading" role="status">Opening a little window…</div>
+        <button id="reset-view" title="Reset view" aria-label="Reset the illustration view">↺</button>
+      </div>
+      <div class="caption"><span id="scene-place">AT HOME</span><span id="scene-caption">RAIN ON THE WINDOWS. NOWHERE TO GO.</span></div>
+      <div class="moment" aria-live="polite"><span id="figure">FIG. 01</span><em id="moment">The lovely art of staying in.</em></div>
+    </section>
+  </main>
+  <footer>
+    <span class="look-hint">Move slowly. Let your eyes wander.</span>
+    <button id="motion-toggle" aria-pressed="true">Motion is on</button>
+    <div class="sound-controls"><button id="sound-toggle" aria-pressed="false"><span aria-hidden="true">♩</span><span id="sound-label">Sound is off</span></button><input id="volume" type="range" min="0" max="100" value="40" aria-label="Ambient sound volume" hidden/></div>
+  </footer>
+  <script type="module" src="/src/illustrated.js"></script>
+</body>
+</html>
