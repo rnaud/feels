@@ -259,7 +259,7 @@ function selectScene(key){
  if(!sceneDefinitions[key])return;
  activeScene=key;const definition=sceneDefinitions[key];applyLook();
  history.replaceState(null,'','?scene='+key);
- document.querySelector('.edition-link').href=import.meta.env.BASE_URL+'illustrated/?scene='+(referenceStudies[key]?key:'home');
+ document.querySelector('.edition-link').href=import.meta.env.BASE_URL+'illustrated/?scene='+(key==='paris'?'paris':'home');
  for(const button of sceneList.querySelectorAll('[data-scene]')){const selected=button.dataset.scene===key;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',selected);}
  document.querySelector('#scene-coordinate').textContent=definition.place;
  document.querySelector('#scene-weather').textContent=definition.caption;

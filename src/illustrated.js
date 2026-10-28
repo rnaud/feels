@@ -8,8 +8,8 @@ const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
 let motion = !motionPreference.matches;
 let active = new URLSearchParams(location.search).get('scene') === 'paris' ? 'paris' : 'home';
 const definitions = {
-  home: { file: 'rainy-room.png', place: 'AT HOME', caption: 'RAIN ON THE WINDOWS. NOWHERE TO GO.', moment: 'The lovely art of staying in.', label: 'A rainy room in moving ink.' },
-  paris: { file: 'paris-cafe.png', place: 'MONTMARTRE, PARIS', caption: 'ONE COFFEE. ALL THE TIME IN THE WORLD.', moment: 'The world can wait another coffee.', label: 'A Paris café terrace in moving ink.' },
+  home: { file: 'midjourney/home.png', place: 'AT HOME', caption: 'RAIN ON THE WINDOWS. NOWHERE TO GO.', moment: 'The lovely art of staying in.', label: 'A rainy room in moving ink.' },
+  paris: { file: 'midjourney/paris.png', place: 'MONTMARTRE, PARIS', caption: 'ONE COFFEE. ALL THE TIME IN THE WORLD.', moment: 'The world can wait another coffee.', label: 'A Paris café terrace in moving ink.' },
 };
 const sound = new Ambience();
 const scene = new THREE.Scene();
@@ -35,16 +35,15 @@ const smooth = (a, b, n) => THREE.MathUtils.smoothstep(n, a, b);
 // exactly matches the drawing; foreground regions shift farther than the distance.
 function depthAt(key, u, v) {
   if (key === 'home') {
-    const foreground = smooth(.59, .92, v) * 1.05;
-    const lamp = Math.exp(-(((u - .80) / .13) ** 4) - ((v - .47) / .31) ** 4) * .8;
-    const sides = smooth(.61, .69, u) * .38 + (1 - smooth(.10, .17, u)) * .3;
-    return Math.max(.1 + foreground, lamp, sides);
+    const foreground = smooth(.48, .82, v) * .85;
+    const cup = Math.exp(-(((u - .52) / .13) ** 4) - ((v - .66) / .15) ** 4) * .85;
+    const chair = Math.exp(-(((u - .67) / .08) ** 4) - ((v - .44) / .15) ** 4) * .42;
+    return Math.max(.1 + foreground, cup, chair);
   }
-  const table = smooth(.64, .92, v) * 1.2;
-  const chair = (1 - smooth(.20, .32, u)) * smooth(.40, .59, v) * .9;
-  const awning = (1 - smooth(.03, .15, v)) * (1 - smooth(.55, .7, u)) * .8;
-  const tree = Math.exp(-(((u - .86) / .08) ** 4)) * (1 - smooth(.55, .72, v)) * .55;
-  return Math.max(.08 + table, chair, awning, tree);
+  const table = smooth(.64, .90, v) * 1.0;
+  const chair = Math.exp(-(((u - .73) / .14) ** 4)) * smooth(.63, .75, v) * .75;
+  const tree = Math.exp(-(((u - .77) / .14) ** 4)) * (1 - smooth(.53, .67, v)) * .22;
+  return Math.max(.08 + table, chair, tree);
 }
 function projectedPoint(key, u, v, extra = 0) {
   const z = depthAt(key, u, v) + extra;
@@ -71,9 +70,9 @@ async function buildView(key) {
       void main(){
         vec2 uv=vUv;
         if(home>.5){
-          float steam=exp(-pow(abs((uv.x-.743)/.033),4.)-pow(abs((uv.y-.45)/.09),4.));
+          float steam=exp(-pow(abs((uv.x-.51)/.033),4.)-pow(abs((uv.y-.43)/.09),4.));
           uv.x+=sin(uv.y*55.+time*.7)*.0022*steam*living;
-          float cat=exp(-pow(abs((uv.x-.14)/.15),4.)-pow(abs((uv.y-.24)/.14),4.));
+          float cat=exp(-pow(abs((uv.x-.43)/.07),4.)-pow(abs((uv.y-.61)/.04),4.));
           uv.y+=sin(time*.8)*.0007*cat*living;
         }else{
           float leaves=smoothstep(.76,.95,uv.y)*smoothstep(.56,.65,uv.x);
@@ -81,10 +80,9 @@ async function buildView(key) {
         }
         vec3 c=texture2D(art,uv).rgb;
         float light=dot(c,vec3(.299,.587,.114));
-        // Static, paper-anchored stippling keeps the source's tonal detail in two inks.
-        vec2 cell=floor(uv*vec2(1536.,1024.));
-        float grain=fract(sin(dot(cell,vec2(12.9898,78.233)))*43758.5453);
-        float paper=step(.16+grain*.67,light);
+        // Two inks, with antialiasing only at the drawn edges. Avoid added grain.
+        float edge=max(fwidth(light)*.5,.018);
+        float paper=smoothstep(.64-edge,.64+edge,light);
         gl_FragColor=vec4(vec3(mix(.055,1.,paper)),1.);
       }`,
   });
@@ -92,16 +90,16 @@ async function buildView(key) {
   group.add(new THREE.Mesh(geometry, material));
   const updates = [];
   if (key === 'home') {
-    const drops = Array.from({ length: 95 }, () => ({ x: .16 + Math.random() * .45, start: Math.random(), speed: .045 + Math.random() * .045 }));
+    const drops = Array.from({ length: 16 }, () => ({ x: .32 + Math.random() * .22, start: Math.random(), speed: .045 + Math.random() * .045 }));
     const rain = new THREE.BufferGeometry();
     const vertices = new Float32Array(drops.length * 6);
     rain.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    const lines = new THREE.LineSegments(rain, new THREE.LineBasicMaterial({ color: 0xffffff }));
+    const lines = new THREE.LineSegments(rain, new THREE.LineBasicMaterial({ color: 0x333333 }));
     group.add(lines);
     updates.push(t => {
       drops.forEach((drop, i) => {
-        const v = (drop.start + t * drop.speed) % .59;
-        const hidden = v > .085 && v < .18;
+        const v = .15 + (drop.start + t * drop.speed) % .24;
+        const hidden = false;
         const a = projectedPoint(key, drop.x, v, .035);
         const b = projectedPoint(key, drop.x - .0006, v + (hidden ? 0 : .009), .035);
         vertices.set([...a.toArray(), ...b.toArray()], i * 6);
@@ -116,8 +114,8 @@ async function buildView(key) {
     updates.push(t => {
       for (let strand = 0; strand < 3; strand++) for (let i = 0; i < 20; i++) {
         const points = [i, i + 1].map(j => {
-          const v = .666 - j * .005;
-          const u = .42 + (strand - 1) * .008 + Math.sin(j * .25 - t * .8 + strand) * .005 * j / 20;
+          const v = .734 - j * .0035;
+          const u = .478 + (strand - 1) * .008 + Math.sin(j * .25 - t * .8 + strand) * .005 * j / 20;
           return projectedPoint(key, u, v, .06);
         });
         vertices.set([...points[0].toArray(), ...points[1].toArray()], (strand * 20 + i) * 6);
