@@ -95,9 +95,10 @@ document.querySelector('#volume').addEventListener('input',e=>sound.setVolume(Nu
 document.addEventListener('visibilitychange',()=>{if(!sound.ctx)return;if(document.hidden)sound.ctx.suspend();else if(sound.enabled)sound.ctx.resume();});
 const about=document.querySelector('#about');document.querySelector('#about-button').addEventListener('click',()=>about.showModal());about.querySelector('.close-dialog').addEventListener('click',()=>about.close());about.addEventListener('click',e=>{if(e.target===about){const r=about.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)about.close();}});
 const clock=new THREE.Clock();
+const sceneTimes=Object.fromEntries(sceneKeys.map(key=>[key,0]));
 function render(){
- requestAnimationFrame(render);if(document.hidden)return;
- const elapsed=clock.getElapsedTime();
+ requestAnimationFrame(render);const delta=Math.min(clock.getDelta(),.05);if(document.hidden)return;
+ const elapsed=sceneTimes[activeScene]+(reducedMotion?0:delta);sceneTimes[activeScene]=elapsed;
  const px=reducedMotion?0:pointerX*.22,py=reducedMotion?0:-pointerY*.14;
  const smoothing=reducedMotion?1:.065;
  yaw+=(targetYaw+px-yaw)*smoothing;pitch+=(targetPitch+py-pitch)*smoothing;
