@@ -1,6 +1,6 @@
 # feels
 
-Six quiet, first-person Three.js scenes in black and white: a rainy afternoon at home, a café terrace in Paris, a slow train, a cabin in the snow, a seaside balcony, and a bookshop reading corner.
+Eleven quiet, first-person Three.js scenes in black and white: a rainy afternoon at home, a café terrace in Paris, a slow train, a cabin in the snow, a seaside balcony, a bookshop reading corner, a rainy greenhouse, a jazz bar, an evening rooftop, a ferry crossing, and a midnight kitchen.
 
 ## Run
 
@@ -13,7 +13,7 @@ Open the local URL printed by Vite. `npm run build` creates the production site 
 
 Each scene places you at a fixed, seated eye height inside the world. Move the pointer for a gentle head turn, drag to look around, or focus the illustration and use the arrow keys. The reset button or Home key restores the view. Choose a scene in the scrollable collection. Each world is built on its first visit, and only the selected scene animates. Ambient audio is optional and synthesized in the browser; use the sound switch and volume slider. Motion respects the operating system’s reduced-motion preference, and rendering/audio pause in background tabs.
 
-All six scenes in the main edition are modeled 3D geometry. All six scenes now have Midjourney reference-guided studies inspired by Sempé: use **New look / Earlier look** to compare them, and **See reference** to view each selected drawing. The drawings are not used as textures or backgrounds in the main edition. Audio is synthesized locally. Fonts load from Google Fonts, with local serif/sans-serif fallbacks.
+All eleven scenes in the main edition are modeled 3D geometry with surface-attached pen shading. The original six follow the user’s hearted Midjourney studies; **See reference** opens those drawings. The five additional places extend the same visual vocabulary without new generated reference images. The earlier rendering and comparison controls have been removed. The drawings are not used as textures or backgrounds in the main edition. Audio is synthesized locally. Fonts load from Google Fonts, with local serif/sans-serif fallbacks.
 
 ## Publish
 
@@ -25,7 +25,7 @@ npm run deploy
 
 This builds the site for `/feels/` and publishes `dist` to the `gh-pages` branch. GitHub Pages serves that branch. Commit and push source changes to `main` separately. Local development remains at `/`.
 
-The new edition uses white geometry with fine screen-space silhouettes, surface-attached pen hatching, and deliberately placed curved ink strokes. Foreground cups and books sit within reach; windows and spare scenery leave plenty of white space. Small movements include rain, steam, a breathing cat, passing trees, fire, a sailboat, and a walking figure. The earlier edition retains its surface hatching and two-tone lighting. Each scene has its own synthesized ambience.
+The new edition uses white geometry with fine screen-space silhouettes, surface-attached pen hatching, and deliberately placed curved ink strokes. Foreground cups and books sit within reach; windows and spare scenery leave plenty of white space. Small movements include rain, steam, a breathing cat, passing trees, fire, a sailboat, and a walking figure. Each scene has its own synthesized ambience.
 
 ## Illustrated experiment
 
