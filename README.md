@@ -25,7 +25,7 @@ npm run deploy
 
 This builds the site for `/feels/` and publishes `dist` to the `gh-pages` branch. GitHub Pages serves that branch. Commit and push source changes to `main` separately. Local development remains at `/`.
 
-The new edition uses white geometry with fine screen-space silhouettes, surface-attached pen hatching, and deliberately placed curved ink strokes. Foreground cups and books sit within reach; windows and spare scenery leave plenty of white space. Small movements include rain, steam, a breathing cat, passing trees, fire, a sailboat, and a walking figure. Each scene has its own synthesized ambience.
+The new edition uses white geometry with fine screen-space silhouettes, surface-attached pen hatching, and deliberately placed curved ink strokes. Foreground cups and books sit within reach; windows and spare scenery leave plenty of white space. Every scene has visible, gentle object motion: a swishing cat tail, a turning waiter, passing trees, flickering fire, a rocking sailboat and fluttering towel, lifting book pages, swaying greenhouse foliage, a musician moving with the music, billowing laundry, a swinging lifebuoy, and a kitchen clock pendulum. These animate real geometry and transforms, preserve their fixed attachment points, and respect reduced-motion settings. Each scene has its own synthesized ambience.
 
 ## Illustrated experiment
 
