@@ -231,7 +231,7 @@ Object.entries(sceneDefinitions).forEach(([key,d],index)=>{
 const cameraTarget = new THREE.Vector3();
 let yaw=0,pitch=0,targetYaw=0,targetPitch=0,pointerX=0,pointerY=0,dragging=false,lastX=0,lastY=0;
 let viewWidth=0,viewHeight=0;
-function resize(){const rect=canvas.getBoundingClientRect();viewWidth=rect.width;viewHeight=rect.height;renderer.setSize(viewWidth,viewHeight,false);camera.aspect=viewWidth/viewHeight;camera.fov=camera.aspect<1.2?77:64;camera.updateProjectionMatrix();}
+function resize(){const rect=canvas.getBoundingClientRect();viewWidth=rect.width;viewHeight=rect.height;renderer.setSize(viewWidth,viewHeight,false);camera.aspect=viewWidth/viewHeight;const study=studyEnabled&&referenceStudies[activeScene];const base=study?study.fov:64;camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(base/2))*Math.max(1,1.5/camera.aspect)));camera.updateProjectionMatrix();}
 new ResizeObserver(resize).observe(canvas.parentElement);resize();
 function clampGaze(){targetYaw=THREE.MathUtils.clamp(targetYaw,-.78,.78);targetPitch=THREE.MathUtils.clamp(targetPitch,-.4,.43);}
 canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;pointerX=pointerY=0;canvas.setPointerCapture(e.pointerId);});
@@ -253,6 +253,7 @@ function applyLook(){
  studySwitch.hidden=!referenceStudies[activeScene];
  document.querySelector('#study-new').setAttribute('aria-pressed',studyEnabled);
  document.querySelector('#study-earlier').setAttribute('aria-pressed',!studyEnabled);
+ resize();
  reset(true);
 }
 function selectScene(key){

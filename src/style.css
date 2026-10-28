@@ -17,3 +17,9 @@
 .study-switch{position:absolute;top:12px;left:12px;display:flex;background:#fff;border:1px solid #171717;z-index:2}.study-switch[hidden]{display:none}.study-switch button{font-size:9px;padding:9px 11px;border-right:1px solid #171717}.study-switch button:last-child{border-right:0}.study-switch button[aria-pressed=true]{background:#171717;color:#fff}#reference-dialog{max-width:1000px;padding:32px;width:calc(100% - 40px);max-height:92svh;overflow:auto}#reference-dialog h2{font-size:27px;margin:17px 0}#reference-image{display:block;width:100%;height:auto;max-height:66svh;object-fit:contain}#reference-dialog p{margin:17px 0 0;font-size:11px}#reference-dialog::backdrop{background:rgb(255 255 255 / 85%)}@media(max-width:700px){.study-switch{top:9px;left:9px}.study-switch button{font-size:8px;padding:8px 9px}#reference-dialog{padding:25px 18px}}
 
 .edition-link{margin-left:auto;font-size:11px;color:inherit;text-underline-offset:5px}.edition-link+.about-button{margin-left:0}@media(max-width:700px){.edition-link{font-size:9px}.header{gap:16px}.header .about-button{display:none}}
+
+/* Keep the drawing's composition stable instead of squeezing it on short screens. */
+@media(min-width:701px){main{height:calc(42.6vw + 145px);min-height:680px;max-height:none}.world{height:calc(42.6vw + 42px);bottom:auto}.moment{top:calc(42.6vw + 92px);bottom:auto}.places{bottom:24px}#scene{height:calc(100% - 42px)}}
+@media(min-width:1600px){main{height:calc(43.93vw + 145px)}.world{height:calc(43.93vw + 42px)}.moment{top:calc(43.93vw + 92px)}}
+@media(min-width:701px) and (max-width:1050px){.world{height:calc(41.33vw + 42px)}.moment{top:calc(41.33vw + 92px)}}
+@media(max-width:700px){#scene{height:calc(100% - 42px)}}

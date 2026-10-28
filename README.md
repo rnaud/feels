@@ -25,7 +25,7 @@ npm run deploy
 
 This builds the site for `/feels/` and publishes `dist` to the `gh-pages` branch. GitHub Pages serves that branch. Commit and push source changes to `main` separately. Local development remains at `/`.
 
-The new edition uses white, unshaded geometry with fine screen-space silhouettes and deliberately placed curved ink strokes. Foreground cups and books sit within reach; windows and spare scenery leave plenty of white space. Small movements include rain, steam, a breathing cat, passing trees, fire, a sailboat, and a walking figure. The earlier edition retains its surface hatching and two-tone lighting. Each scene has its own synthesized ambience.
+The new edition uses white geometry with fine screen-space silhouettes, surface-attached pen hatching, and deliberately placed curved ink strokes. Foreground cups and books sit within reach; windows and spare scenery leave plenty of white space. Small movements include rain, steam, a breathing cat, passing trees, fire, a sailboat, and a walking figure. The earlier edition retains its surface hatching and two-tone lighting. Each scene has its own synthesized ambience.
 
 ## Illustrated experiment
 
@@ -33,4 +33,4 @@ The separate **[illustrated edition](https://rnaud.github.io/feels/illustrated/)
 
 The illustrated edition converts the drawing to two inks with antialiased edges, without adding grain. Sound is optional, motion can be paused, and reduced-motion preferences are honored. Image loading has a retry message; switching scenes during loading retains the latest selection. Both editions are emitted by the production build and deployed together.
 
-The six current references were generated in Midjourney V7, selected with the user, and are saved in `public/references/midjourney/` with exact prompts, job IDs, and selected indices in `prompts.json`. These are generated Sempé-inspired studies, not original artwork by Sempé. Home and Paris also use the selected drawings in the illustrated experiment, with depth and motion adjusted to their compositions. The original built-in image-generation studies remain archived in `public/references/`.
+The six current references were generated in Midjourney V7, selected from the user’s six hearted images (verified October 28, 2026), and are saved in `public/references/midjourney/` with exact prompts, job IDs, and selected indices in `prompts.json`. These are generated Sempé-inspired studies, not original artwork by Sempé. Home and Paris also use the selected drawings in the illustrated experiment, with depth and motion adjusted to their compositions. The original built-in image-generation studies remain archived in `public/references/`.

@@ -41,8 +41,8 @@ function depthAt(key, u, v) {
     return Math.max(.1 + foreground, cup, chair);
   }
   const table = smooth(.64, .90, v) * 1.0;
-  const chair = Math.exp(-(((u - .73) / .14) ** 4)) * smooth(.63, .75, v) * .75;
-  const tree = Math.exp(-(((u - .77) / .14) ** 4)) * (1 - smooth(.53, .67, v)) * .22;
+  const chair = Math.exp(-(((u - .14) / .16) ** 4)) * smooth(.63, .75, v) * .75;
+  const tree = Math.exp(-(((u - .30) / .19) ** 4)) * (1 - smooth(.53, .67, v)) * .22;
   return Math.max(.08 + table, chair, tree);
 }
 function projectedPoint(key, u, v, extra = 0) {
@@ -75,7 +75,7 @@ async function buildView(key) {
           float cat=exp(-pow(abs((uv.x-.43)/.07),4.)-pow(abs((uv.y-.61)/.04),4.));
           uv.y+=sin(time*.8)*.0007*cat*living;
         }else{
-          float leaves=smoothstep(.76,.95,uv.y)*smoothstep(.56,.65,uv.x);
+          float leaves=smoothstep(.53,.76,uv.y)*(1.-smoothstep(.40,.53,uv.x));
           uv.x+=sin(time*.45+uv.y*16.)*.0008*leaves*living;
         }
         vec3 c=texture2D(art,uv).rgb;
@@ -115,7 +115,7 @@ async function buildView(key) {
       for (let strand = 0; strand < 3; strand++) for (let i = 0; i < 20; i++) {
         const points = [i, i + 1].map(j => {
           const v = .734 - j * .0035;
-          const u = .478 + (strand - 1) * .008 + Math.sin(j * .25 - t * .8 + strand) * .005 * j / 20;
+          const u = .59 + (strand - 1) * .008 + Math.sin(j * .25 - t * .8 + strand) * .005 * j / 20;
           return projectedPoint(key, u, v, .06);
         });
         vertices.set([...points[0].toArray(), ...points[1].toArray()], (strand * 20 + i) * 6);
