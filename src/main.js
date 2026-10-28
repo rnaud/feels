@@ -37,7 +37,7 @@ canvas.addEventListener('pointermove',e=>{if(dragging){targetYaw-=(e.clientX-las
 function release(){dragging=false;}canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('lostpointercapture',release);canvas.addEventListener('pointerleave',()=>{pointerX=0;pointerY=0;});
 function reset(immediate=false){targetYaw=targetPitch=pointerX=pointerY=0;if(immediate){yaw=pitch=0;}dragging=false;}
 document.querySelector('#reset-view').addEventListener('click',()=>reset());
-canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(e.key))return;e.preventDefault();if(e.key==='Home')reset();if(e.key==='ArrowLeft')targetYaw-=.08;if(e.key==='ArrowRight')targetYaw+=.08;if(e.key==='ArrowUp')targetPitch+=.06;if(e.key==='ArrowDown')targetPitch-=.06;clampGaze();});
+canvas.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','Home'].includes(e.key))return;e.preventDefault();if(e.key==='Home')reset();if(e.key==='ArrowUp')targetPitch+=.06;if(e.key==='ArrowDown')targetPitch-=.06;clampGaze();});
 const studySwitch=document.querySelector('#study-switch');
 const referenceDialog=document.querySelector('#reference-dialog');
 function applyLook(){
@@ -62,11 +62,23 @@ function selectScene(key){
  document.querySelector('#scene-weather').textContent=definition.caption;
  document.querySelector('#moment-title').textContent=definition.moment;
  document.querySelector('#moment-index').textContent='FIG. '+String(Object.keys(sceneDefinitions).indexOf(key)+1).padStart(2,'0');
- canvas.setAttribute('aria-label',definition.description+' Drag or use arrow keys to look around.');
+ canvas.setAttribute('aria-label',definition.description+' Drag to look around. Left and right arrows change the feel; up and down arrows tilt the view.');
  sound.setScene(key);
  if(matchMedia('(max-width: 700px)').matches)canvas.parentElement.scrollIntoView({behavior:reducedMotion?'instant':'smooth',block:'start'});
 }
 sceneList.addEventListener('click',event=>{const button=event.target.closest('[data-scene]');if(button)selectScene(button.dataset.scene);});
+// Left/right select a place from anywhere on the page, except while using a
+// form control or dialog. One physical key press advances exactly one feel.
+const sceneKeys=Object.keys(sceneDefinitions);
+document.addEventListener('keydown',event=>{
+ if(!['ArrowLeft','ArrowRight'].includes(event.key)||event.defaultPrevented||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+ if(document.querySelector('dialog[open]')||event.target.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])'))return;
+ event.preventDefault();
+ if(event.repeat)return;
+ const direction=event.key==='ArrowRight'?1:-1;
+ const next=(sceneKeys.indexOf(activeScene)+direction+sceneKeys.length)%sceneKeys.length;
+ selectScene(sceneKeys[next]);
+});
 document.querySelector('#show-reference').addEventListener('click',()=>{
  const study=referenceStudies[activeScene];if(!study?.reference)return;
  document.querySelector('#reference-title').textContent=sceneDefinitions[activeScene].title;
