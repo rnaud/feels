@@ -3,6 +3,8 @@ import { Ambience } from './ambience.js';
 import { createReferenceScenes } from './reference-scenes.js';
 import { sceneDefinitions } from './scene-catalog.js';
 import './style.css';
+import { setupImmersive } from './immersive.js';
+import { framedFov } from './view-framing.js';
 
 const canvas = document.querySelector('#scene');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -29,7 +31,7 @@ Object.entries(sceneDefinitions).forEach(([key,d],index)=>{
 const cameraTarget = new THREE.Vector3();
 let yaw=0,pitch=0,targetYaw=0,targetPitch=0,pointerX=0,pointerY=0,dragging=false,lastX=0,lastY=0;
 let viewWidth=0,viewHeight=0;
-function resize(){const rect=canvas.getBoundingClientRect();viewWidth=rect.width;viewHeight=rect.height;renderer.setSize(viewWidth,viewHeight,false);camera.aspect=viewWidth/viewHeight;const study=referenceStudies[activeScene];const base=study?study.fov:64;camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(base/2))*Math.max(1,1.5/camera.aspect)));camera.updateProjectionMatrix();}
+function resize(){const rect=canvas.getBoundingClientRect();viewWidth=rect.width;viewHeight=rect.height;renderer.setSize(viewWidth,viewHeight,false);camera.aspect=viewWidth/viewHeight;const study=referenceStudies[activeScene];const base=study?study.fov:64;camera.fov=framedFov(base,camera.aspect);camera.updateProjectionMatrix();}
 new ResizeObserver(resize).observe(canvas.parentElement);resize();
 function clampGaze(){targetYaw=THREE.MathUtils.clamp(targetYaw,-.78,.78);targetPitch=THREE.MathUtils.clamp(targetPitch,-.4,.43);}
 canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;pointerX=pointerY=0;canvas.setPointerCapture(e.pointerId);});
@@ -61,10 +63,11 @@ function selectScene(key){
  document.querySelector('#scene-coordinate').textContent=definition.place;
  document.querySelector('#scene-weather').textContent=definition.caption;
  document.querySelector('#moment-title').textContent=definition.moment;
+ document.querySelector('#immersive-title').textContent=definition.title;
  document.querySelector('#moment-index').textContent='FIG. '+String(Object.keys(sceneDefinitions).indexOf(key)+1).padStart(2,'0');
  canvas.setAttribute('aria-label',definition.description+' Drag to look around. Left and right arrows change the feel; up and down arrows tilt the view.');
  sound.setScene(key);
- if(matchMedia('(max-width: 700px)').matches)canvas.parentElement.scrollIntoView({behavior:reducedMotion?'instant':'smooth',block:'start'});
+ if(!document.body.classList.contains('immersive')&&matchMedia('(max-width: 700px)').matches)canvas.parentElement.scrollIntoView({behavior:reducedMotion?'instant':'smooth',block:'start'});
 }
 sceneList.addEventListener('click',event=>{const button=event.target.closest('[data-scene]');if(button)selectScene(button.dataset.scene);});
 // Left/right select a place from anywhere on the page, except while using a
@@ -76,9 +79,9 @@ document.addEventListener('keydown',event=>{
  event.preventDefault();
  if(event.repeat)return;
  const direction=event.key==='ArrowRight'?1:-1;
- const next=(sceneKeys.indexOf(activeScene)+direction+sceneKeys.length)%sceneKeys.length;
- selectScene(sceneKeys[next]);
+ selectRelative(direction);
 });
+function selectRelative(direction){selectScene(sceneKeys[(sceneKeys.indexOf(activeScene)+direction+sceneKeys.length)%sceneKeys.length]);}
 document.querySelector('#show-reference').addEventListener('click',()=>{
  const study=referenceStudies[activeScene];if(!study?.reference)return;
  document.querySelector('#reference-title').textContent=sceneDefinitions[activeScene].title;
@@ -90,7 +93,16 @@ referenceDialog.addEventListener('click',event=>{if(event.target===referenceDial
 
 // All ambience is synthesized locally. No audio files or requests are needed.
 const sound=new Ambience();
-document.querySelector('#sound-toggle').addEventListener('click',async()=>{try{const enabled=await sound.toggle(activeScene);document.body.classList.toggle('sound-on',enabled);document.querySelector('#sound-toggle').setAttribute('aria-pressed',enabled);document.querySelector('#sound-label').textContent=enabled?'A little atmosphere':'Sound is off';document.querySelector('.sound-state').textContent=enabled?'ON':'OFF';document.querySelector('#volume').hidden=!enabled;}catch{document.querySelector('#sound-label').textContent='Sound unavailable';}});
+async function toggleSound(){try{
+ const enabled=await sound.toggle(activeScene);document.body.classList.toggle('sound-on',enabled);
+ document.querySelector('#sound-toggle').setAttribute('aria-pressed',enabled);
+ document.querySelector('#immersive-sound').setAttribute('aria-pressed',enabled);
+ document.querySelector('#immersive-sound').textContent=enabled?'Sound on':'Sound off';
+ document.querySelector('#sound-label').textContent=enabled?'A little atmosphere':'Sound is off';
+ document.querySelector('.sound-state').textContent=enabled?'ON':'OFF';document.querySelector('#volume').hidden=!enabled;
+}catch{document.querySelector('#sound-label').textContent='Sound unavailable';document.querySelector('#immersive-sound').textContent='Sound unavailable';}}
+document.querySelector('#sound-toggle').addEventListener('click',toggleSound);
+setupImmersive({canvas,selectRelative,soundToggle:toggleSound});
 document.querySelector('#volume').addEventListener('input',e=>sound.setVolume(Number(e.target.value)/100));
 document.addEventListener('visibilitychange',()=>{if(!sound.ctx)return;if(document.hidden)sound.ctx.suspend();else if(sound.enabled)sound.ctx.resume();});
 const about=document.querySelector('#about');document.querySelector('#about-button').addEventListener('click',()=>about.showModal());about.querySelector('.close-dialog').addEventListener('click',()=>about.close());about.addEventListener('click',e=>{if(e.target===about){const r=about.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)about.close();}});
@@ -103,11 +115,13 @@ function render(){
  const smoothing=reducedMotion?1:.065;
  yaw+=(targetYaw+px-yaw)*smoothing;pitch+=(targetPitch+py-pitch)*smoothing;
  const study=referenceStudies[activeScene];
- const view=study,heading=view.yaw+yaw,elevation=view.pitch+pitch;
+ const view=study,heading=view.yaw+yaw+(camera.aspect<.8?({cabin:-.10,ferry:-.18,bookstore:.04}[activeScene]||0):0),elevation=view.pitch+pitch;
  camera.position.fromArray(view.eye);
  cameraTarget.set(Math.sin(heading)*Math.cos(elevation),Math.sin(elevation),-Math.cos(heading)*Math.cos(elevation)).add(camera.position);
  camera.lookAt(cameraTarget);
+ sound.setHeading(heading);
  if(!reducedMotion)for(const fn of animations[study.animation])fn(elapsed);
+ sound.updateEvents(activeScene,elapsed,studyWorlds[activeScene]?.userData.events||[]);
  renderer.render(scene,camera);
 }
 render();document.querySelector('#loading').classList.add('loaded');

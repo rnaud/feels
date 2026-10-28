@@ -101,3 +101,18 @@ test('rooftop laundry moves while its pegs remain fixed', () => {
   update(3); pegs.forEach((peg, i) => assert.deepEqual(state(peg), before[i]));
   assert.notDeepEqual(state(cloth), clothBefore);
 });
+
+for (const key of ['home','paris','train','cabin','seaside','bookstore','greenhouse','jazz','rooftop','ferry','kitchen']) {
+ test(`${key}: occasional event completes and repeats without drift`,()=>{
+  const {world,update}=fixture(key),events=world.userData.events;
+  assert(events?.length>0);
+  for(const event of events){
+   assert(event.period>event.duration*2);
+   update(event.start+event.duration/2);const during=state(world);
+   assert(during.every(Number.isFinite));
+   update(event.start+event.period+event.duration/2);
+   assert(state(world).every(Number.isFinite));
+   update(event.start+event.duration/2);assert.deepEqual(state(world),during);
+  }
+ });
+}

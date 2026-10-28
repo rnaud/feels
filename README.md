@@ -38,3 +38,13 @@ The six current references were generated in Midjourney V7, selected from the us
 ## Checks
 
 `npm test` checks finite, repeatable animation in all eleven scenes, landscape motion and seamless train loops, the outside bookshop tree, the stationary book block, and fixed laundry pegs. `npm run build` validates both published editions. Browser review covers composition, rendering, sound controls, and keyboard navigation.
+
+## Stay here
+
+**Stay here** fills the browser with the selected world. Its controls fade after 3.5 seconds of inactivity; pointer movement, a tap, or keyboard input brings them back. Controls stay visible while focused. Left/right still change places; the on-screen arrows also work on touchscreens. Escape or **Back to places** restores the collection and keyboard focus. This works without browser fullscreen permissions, including on phones.
+
+All eleven places now have occasional events with quiet intervals: a waking cat, a passing cyclist, an oncoming train, rising embers, a sail catching wind, a hopping bookshop bird, drips from a hanging planter, a pianist glancing aside, a rooftop bird hopping, a passing fishing boat, and a kitchen tap drip. Events use the same per-scene clock as the ordinary motion, so leaving a scene pauses them. Reduced motion freezes both. Sound cues follow that clock and never replay missed events after unmuting.
+
+Audio still starts off on every visit. Optional sound now separates nearby details from environmental layers with stereo placement, responds to head turns, and adds a short soft reflection in indoor scenes. Levels pass through a compressor. Scene changes crossfade and release old audio nodes. Automated audio checks use silent node doubles, never hardware playback.
+
+Seated eyes are lower and nearer the tables. The phone lens has a bounded vertical field of view, so objects retain their scale; look around to see the edges of the room. Portrait cabin and ferry views aim slightly toward nearby furniture. The immersive interface has touch-sized controls and safe-area spacing.

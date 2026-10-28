@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { penPaper } from './pen-material.js';
+import { eventPhase, eventEnvelope } from './scene-events.js';
 
 // Actual volumes and surface-attached ink. The Midjourney drawings are only
 // references: no image planes, cutouts or projected artwork enter these worlds.
@@ -109,12 +110,12 @@ export function createReferenceScenes({root,animations}) {
     for(let i=0;i<a.count;i++){const u=Math.floor(i/13)/60,c=path.getPointAt(u),k=.2+.8*Math.sin(Math.PI*u);a.setXYZ(i,c.x+(a.getX(i)-c.x)*k,c.y+(a.getY(i)-c.y)*k,c.z+(a.getZ(i)-c.z)*k);}mesh(g,geo);
     for(let i=1;i<9;i++){const u=i/10,c=path.getPointAt(u),t=path.getTangentAt(u),side=new THREE.Vector3(-t.z,0,t.x),r=.065*(.2+.8*Math.sin(Math.PI*u));const fold=[];for(let j=0;j<12;j++){const q=j/11*Math.PI;fold.push(c.clone().addScaledVector(side,Math.cos(q)*r*1.015).add(new THREE.Vector3(0,Math.sin(q)*r*1.015,0)).toArray());}line(g,fold,i%3===0);}shadow(g,0,-.04,0,.23,.12,50);return g;
   }
-  function cat(p,x,y,z,key){const g=group(p,x,y,z);g.rotation.y=-.18;ball(g,.32,.13,.20,0,0,0,shaded);ball(g,.145,.105,.12,.24,-.006,.10,shaded);for(const xx of [.15,.33]){const shape=new THREE.Shape();shape.moveTo(-.055,0);shape.lineTo(0,.135);shape.lineTo(.055,0);shape.closePath();mesh(g,new THREE.ExtrudeGeometry(shape,{depth:.035,bevelEnabled:false}),xx,.055,.1,shaded);}
+  function cat(p,x,y,z,key){const g=group(p,x,y,z);g.rotation.y=-.18;ball(g,.32,.13,.20,0,0,0,shaded);const head=group(g);head.name="home-cat-head";ball(head,.145,.105,.12,.24,-.006,.10,shaded);for(const xx of [.15,.33]){const shape=new THREE.Shape();shape.moveTo(-.055,0);shape.lineTo(0,.135);shape.lineTo(.055,0);shape.closePath();mesh(head,new THREE.ExtrudeGeometry(shape,{depth:.035,bevelEnabled:false}),xx,.055,.1,shaded);}
     const tailPath=new THREE.CatmullRomCurve3([[-.24,0,.1],[-.36,-.04,.20],[-.43,-.1,.28],[-.54,-.11,.29]].map(V));const tailPivot=group(g,-.24,0,.1);const tailGeometry=new THREE.TubeGeometry(tailPath,35,.026,8,false);tailGeometry.translate(.24,0,-.1);mesh(tailPivot,tailGeometry,0,0,0,shaded);animations[key].push(t=>tailPivot.rotation.y=Math.sin(t*.75)*.38);
-    for(const xx of [.19,.29])line(g,[[xx-.025,.015,.218],[xx,.001,.225],[xx+.025,.013,.218]],true);
-    for(let i=0;i<3;i++)for(const side of [-1,1])line(g,[[.25,-.025,.223],[.25+side*.13,-.025+i*.022,.25]]);
-    line(g,[[.19,-.07,.21],[.30,-.075,.25],[.35,-.064,.23]],true);shadow(p,x-.03,y-.12,z+.03,.4,.16,55);
-    animations[key].push(t=>g.scale.y=1+Math.sin(t*1.1)*.035);return g;
+    for(const xx of [.19,.29])line(head,[[xx-.025,.015,.218],[xx,.001,.225],[xx+.025,.013,.218]],true);
+    for(let i=0;i<3;i++)for(const side of [-1,1])line(head,[[.25,-.025,.223],[.25+side*.13,-.025+i*.022,.25]]);
+    line(head,[[.19,-.07,.21],[.30,-.075,.25],[.35,-.064,.23]],true);shadow(p,x-.03,y-.12,z+.03,.4,.16,55);
+    animations[key].push(t=>g.scale.y=1+Math.sin(t*1.1)*.035);g.userData.head=head;return g;
   }
   function flutterInk(object,key,{top=0,length=.8,amplitude=.10,speed=.8,page=false}={}){
     const seen=new Set(),surfaces=[];
@@ -134,12 +135,43 @@ export function createReferenceScenes({root,animations}) {
       }
     });
   }
+  // One small occurrence at a time, with long quiet intervals between visits.
+  function occasion(world,key,name,update,{start=12,duration=5,period=43,sound='rustle',pan=0}={}){
+    const event={name,start,duration,period,sound,pan};
+    (world.userData.events??=[]).push(event);
+    animations[key].push(t=>{const u=eventPhase(t,event);update(u,eventEnvelope(u));});
+    update(-1,0);
+  }
+  function droplets(world,key,x,y,z,name){
+    const drops=group(world,x,y,z);drops.name=name;
+    for(let i=0;i<3;i++)ball(drops,.012,.025,.012,0,-i*.08,0,ink);
+    occasion(world,key,name,(u)=>{drops.visible=u>=0;drops.position.y=y-(u<0?0:(u*4%1)*.28);},{duration:2.4,sound:'drip',pan:x*.25});
+  }
+  function cyclist(world,key){
+    const bike=group(world,0,0,-3.6);bike.name='paris-cyclist';
+    const wheels=[];
+    for(const x of [-.43,.43]){const w=group(bike,x,.32,0);mesh(w,new THREE.TorusGeometry(.29,.014,8,36),0,0,0,ink,false);for(let i=0;i<8;i++){const a=i*Math.PI/4;segment(w,[0,0,0],[Math.cos(a)*.28,Math.sin(a)*.28,0]);}wheels.push(w);}
+    for(const [a,b]of [[[-.43,.32,0],[-.12,.72,0]],[[-.12,.72,0],[.12,.32,0]],[[.12,.32,0],[-.43,.32,0]],[[-.12,.72,0],[.33,.72,0]],[[.33,.72,0],[.12,.32,0]],[[.33,.72,0],[.43,.32,0]]])rod(bike,a,b,.014,shaded);
+    rod(bike,[.33,.72,0],[.29,.91,0],.015);rod(bike,[.29,.91,0],[.42,.94,0],.015);box(bike,.21,.035,.12,-.13,.79,0,ink);
+    ball(bike,.09,.11,.08,.06,1.34,0);rod(bike,[-.14,.88,0],[-.04,1.20,0],.07,shaded);rod(bike,[-.04,1.17,0],[.28,.93,0],.025);
+    const legs=[];for(const side of [-1,1]){const knee=group(bike,-.14,.86,side*.06);rod(knee,[0,0,0],[.24,-.25,0],.024);rod(knee,[.24,-.25,0],[.13,-.48,0],.02);legs.push(knee);}
+    occasion(world,key,'cyclist',(u)=>{bike.visible=u>=0;bike.position.x=-9+18*Math.max(0,u);wheels.forEach(w=>w.rotation.z=-u*60);legs.forEach((l,i)=>l.rotation.z=Math.sin(u*45+i*Math.PI)*.20);},{start:9,duration:10,period:49,sound:'bicycle',pan:-.5});
+  }
+  function passingTrain(world,key){
+    const cars=group(world,0,.38,-5.2);cars.name='passing-train';
+    for(let i=0;i<3;i++){const c=group(cars,i*3.1);box(c,3,1.3,.65,0,.8,0,plain,.12);for(let j=0;j<4;j++)rect(c,-1.05+j*.68,1.0,.335,.48,.46,.07,true);line(c,[[-1.4,.48,.34],[1.4,.48,.34]],true);for(const x of [-.9,.9]){const w=cyl(c,.14,.14,.10,x,.13,0,ink);w.rotation.x=Math.PI/2;}}
+    occasion(world,key,'passing-train',(u)=>{cars.visible=u>=0;cars.position.x=18-43*Math.max(0,u);},{start:15,duration:6,period:58,sound:'train',pan:.5});
+  }
+  function embers(world,key,fire){
+    const sparks=group(fire);sparks.name='cabin-embers';for(let i=0;i<5;i++)ball(sparks,.009,.017,.01,(i-2)*.065,.44,.25,plain);
+    occasion(world,key,'embers',(u,amount)=>{sparks.visible=u>=0;sparks.children.forEach((spark,i)=>{spark.position.y=.44+Math.max(0,u)*(.4+i*.06);spark.position.x=(i-2)*.065+Math.sin(u*5+i)*.04;spark.scale.setScalar(amount);});},{start:11,duration:3,period:29,sound:'fire',pan:.1});
+  }
   function home(){const key='homeStudy',g=group(root);window(g,0,2.35,-1.9,3.5,2.0);for(const xx of [-1.58,1.58])box(g,.055,2.0,.14,xx,2.35,-1.81,shaded);box(g,.055,2.0,.14,.93,2.35,-1.81,shaded);
     // Short retraced marks describe the sash and wood grain, not a clean diagram.
     wallHatch(g,-1.65,2.3,-1.72,.055,1.9,35);wallHatch(g,1.55,2.4,-1.72,.055,1.9,30);
     for(let i=0;i<11;i++){const xx=-1.8+rnd()*3.6;line(g,[[xx,1.24-rnd()*.12,-1.56],[xx+.15+rnd()*.35,1.25-rnd()*.12,-1.55]]);}
     for(const [xx,yy,ww]of [[-1.3,2.9,.45],[.2,3.0,.4],[1.5,3.2,.4]]){rect(g,xx,yy,-4.7,ww,.73,.025);wallHatch(g,xx-ww*.36,yy,-4.69,ww*.10,.65,12);line(g,[[xx-ww*.65,yy-.41,-4.65],[xx+ww*.65,yy-.41,-4.65]]);}
-    rain(g,key,0,2.35,-2.03,3.12,1.76,28);cat(g,-.56,1.53,-1.62,key);
+    rain(g,key,0,2.35,-2.03,3.12,1.76,28);const sleeper=cat(g,-.56,1.53,-1.62,key);occasion(g,key,'cat-wakes',(u,e)=>{sleeper.userData.head.position.y=e*.09;sleeper.userData.head.rotation.y=e*.55;},{start:10,duration:8,period:47,sound:'fabric',pan:-.2});
     const t=bistroTable(g,.08,.95,1.6);coffee(t,0,.85,.05,key,1.34);const c=bentChair(g,1.40,-.95,-.10,true);c.scale.setScalar(1.35);return g;}
   function cafeFacade(p,x,z){const f=group(p,x,0,z);f.rotation.y=-.10;box(f,5.7,6.8,.8,0,3.4,0,paper,.008);
     // Shopfront recess, glazing bars, pilasters and the sloped canvas canopy.
@@ -160,7 +192,7 @@ export function createReferenceScenes({root,animations}) {
     // A handful of masonry joints keep the facade specific but leave it airy.
     for(let row=0;row<13;row++){const yy=2.8+row*.30;for(const xx of [-2.6,2.58])line(f,[[xx-.18,yy,.415],[xx+.18,yy+.003,.415]]);}
     wallHatch(f,-2.67,3.8,.52,.1,2.1,70);wallHatch(f,2.5,1.1,.60,.3,1.2,55);return f;}
-  function paris(){const key='parisStudy',g=group(root);cafeFacade(g,2.5,-7.3);const tr=tree(g,-3.8,0,-7.6,1.83,true);animations[key].push(t=>tr.rotation.z=Math.sin(t*.55)*.016);
+  function paris(){const key='parisStudy',g=group(root);cyclist(g,key);cafeFacade(g,2.5,-7.3);const tr=tree(g,-3.8,0,-7.6,1.83,true);animations[key].push(t=>tr.rotation.z=Math.sin(t*.55)*.016);
     // Terrace furniture and seated customers give the street its human scale.
     for(let i=0;i<4;i++){const xx=.3+i*1.18,zz=-4.95+(i%2)*.20;const t=bistroTable(g,xx,zz,.32,.64);const c=bentChair(g,xx-.38,zz+.06,.7);c.scale.setScalar(.67);const d=bentChair(g,xx+.37,zz-.07,-.7);d.scale.setScalar(.67);if(i!==1)person(g,xx+.35,0,zz-.04,.70,i%2===0,true);cyl(t,.045,.045,.09,.05,.70,0,paper);}
     const waiter=person(g,.1,0,-4.30,.90,false);box(waiter,.17,.24,.015,-.01,.72,.075,plain,.01);animations[key].push(t=>{waiter.userData.head.rotation.y=Math.sin(t*.5)*.45;waiter.userData.upper.rotation.y=Math.sin(t*.35)*.10;});
@@ -169,7 +201,7 @@ export function createReferenceScenes({root,animations}) {
     line(g,[[-7,.06,-4.0],[-2,.08,-4.1],[3,.06,-4.08],[7,.07,-4.05]],true);line(g,[[-7,.0,-3.8],[-2,.01,-3.9],[3,.0,-3.88],[7,.0,-3.85]]);for(let i=0;i<35;i++){const xx=-7+i*.4;segment(g,[xx,.025,-3.86],[xx+.06,.055,-4.03]);}shadow(g,-3.85,.013,-7.35,1.0,.5,95);
     const t=bistroTable(g,0,1.15,1.60);coffee(t,.22,.85,.12,key,1.16);pastry(t,-.54,.91,.13,1.0);pastry(t,-.24,.91,-.06,.86).rotation.y=.6;
     const l=bentChair(g,-1.44,.16,.24);l.scale.setScalar(1.12);const r=bentChair(g,1.85,-.35,-.25);r.scale.setScalar(1.12);return g;}
-  function train(){const key='trainStudy',g=group(root);window(g,0,2.10,-1.9,4.15,2.65,{rounded:.36});
+  function train(){const key='trainStudy',g=group(root);passingTrain(g,key);window(g,0,2.10,-1.9,4.15,2.65,{rounded:.36});
     // The wide curved gasket has drawn shading instead of a uniform black rim.
     const marks=[];for(let i=0;i<150;i++){const x=-1.78+rnd()*3.56;marks.push([[x,3.33,-1.82],[x+.035,3.40,-1.82]],[[x,.79,-1.81],[x+.035,.85,-1.81]]);}for(let i=0;i<75;i++){const y=.98+rnd()*2.10;marks.push([[-2.04,y,-1.82],[-1.99,y+.055,-1.82]],[[2.00,y,-1.82],[2.04,y+.055,-1.82]]);}hatch(g,marks);
     const period=24;
@@ -209,7 +241,7 @@ export function createReferenceScenes({root,animations}) {
     const rim=[];for(let i=0;i<27;i++){const a=i/26*Math.PI;rim.push([Math.cos(a)*.76,1.72+Math.sin(a)*.76,.072]);}line(f,rim,true);
     for(let i=0;i<4;i++){const log=cyl(f,.055,.055,.55,(i-1.5)*.08,.31,.22,shaded);log.rotation.z=.9+i*.3;}
     for(let i=0;i<3;i++){const sh=new THREE.Shape();sh.moveTo(0,0);sh.bezierCurveTo(-.18,.14,-.025,.32,.02,.51);sh.bezierCurveTo(.10,.31,.19,.12,0,0);const flame=mesh(f,new THREE.ExtrudeGeometry(sh,{depth:.04,bevelEnabled:false}),-.13+i*.13,.37,.19,plain,false);animations[key].push(t=>{flame.scale.y=.72+(i===1?.35:0)+Math.sin(t*2.2+i)*.20;flame.rotation.z=Math.sin(t*1.7+i)*.09;});}
-    upholstered(g,1.95,-.05,-.30);const t=bistroTable(g,-.82,.92,.60);coffee(t,0,.85,0,key,.85);shadow(g,.3,.015,-2.3,1.1,.36,95);return g;}
+    embers(g,key,f);upholstered(g,1.95,-.05,-.30);const t=bistroTable(g,-.82,.92,.60);coffee(t,0,.85,0,key,.85);shadow(g,.3,.015,-2.3,1.1,.36,95);return g;}
   function foldingChair(p,x,z,angle=0){const g=group(p,x,0,z);g.rotation.y=angle;for(const xx of [-.28,.28]){rod(g,[xx,.02,.35],[xx,1.25,-.30],.014,shaded);rod(g,[xx,.02,-.32],[xx,.55,.28],.014,shaded);ball(g,.025,.025,.025,xx,.47,.02,ink);}
     for(let i=0;i<4;i++)box(g,.60,.024,.12,0,.52,-.18+i*.14,shaded,.008);for(let i=0;i<3;i++)box(g,.60,.12,.022,0,.88+i*.15,-.23-i*.036,shaded,.008);shadow(g,-.05,.011,.02,.40,.35,75);
     const geo=new THREE.PlaneGeometry(.39,.77,16,30),a=geo.attributes.position;for(let i=0;i<a.count;i++){const xx=a.getX(i),v=(a.getY(i)+.385)/.77;a.setXYZ(i,xx,1.22-v*.69,-.27+.08*Math.sin(v*Math.PI)+.018*Math.cos(xx*65));}const cloth=group(g);g.userData.cloth=cloth;const clothPaper=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});mesh(cloth,geo,.16,0,.06,clothPaper,false);
@@ -232,6 +264,7 @@ export function createReferenceScenes({root,animations}) {
     line(g,[[-20,1.1,-24],[-7,1.115,-24],[7,1.10,-24],[20,1.12,-24]],true);
     movingWater(g,key,'seaside-water',.18);
     const boat=group(g,-5.2,1.10,-24);rod(boat,[0,0,0],[0,.95,0],.008);const sh=new THREE.Shape();sh.moveTo(-.34,.10);sh.lineTo(-.025,.92);sh.lineTo(-.025,.10);sh.closePath();mesh(boat,new THREE.ExtrudeGeometry(sh,{depth:.02,bevelEnabled:false}));line(boat,[[-.4,0,0],[0,-.08,0],[.35,0,0]],true);animations[key].push(t=>{boat.rotation.z=Math.sin(t*.85)*.14;boat.rotation.y=Math.sin(t*.38)*.18;boat.position.y=1.10+Math.sin(t*.85)*.04;boat.position.x=((-5.2+30+t*.10)%60)-30;});
+    occasion(g,key,'sail-catches-wind',(u,e)=>{boat.rotation.z+=e*.16;boat.rotation.y+=e*.35;},{start:14,duration:7,period:39,sound:'wave',pan:-.3});
     box(g,10,.15,.16,0,.09,-2.50,shaded);for(let i=0;i<10;i++){const zz=-2.5+i*.48;rod(g,[2.35,.15,zz],[2.35,1.15,zz],.023,shaded);}box(g,.09,.055,4.65,2.35,1.17,-.26,shaded);box(g,.16,.15,4.7,2.35,.10,-.26,shaded);
     const t=bistroTable(g,.1,.15,.61);coffee(t,0,.85,-.05,key,.78);const chair=foldingChair(g,1.27,-.06,-.25);flutterInk(chair.userData.cloth,key,{top:1.22,length:.69,amplitude:.13,speed:.9});
     for(let i=0;i<7;i++)line(g,[[-3.3+i*.72,.34,-5.4-i*.10],[-3.1+i*.72,.35,-5.4-i*.10],[-2.8+i*.72,.34,-5.4-i*.10]]);
@@ -253,6 +286,7 @@ export function createReferenceScenes({root,animations}) {
     for(const points of [[[-.42,2.0,0],[-.9,2.72,0],[-1.1,3.12,0]],[[-.92,2.35,0],[-1.4,2.12,.02],[-1.92,2.18,.02]],[[-1.5,2.55,0],[-1.72,2.9,0],[-2.0,3.02,0]]])line(outside,points,true);
     const bird=group(outside,-1.36,2.59,.05);ball(bird,.075,.045,.043,0,0,0,shaded);const head=group(bird,.05,.04,0);ball(head,.035,.035,.03,0,0,0,shaded);line(head,[[.025,0,.01],[.06,-.01,.01]]);line(bird,[[-.05,0,0],[-.12,-.025,0]],true);for(const x of [-.025,.025])line(bird,[[x,-.025,0],[x,-.06,0]]);
     animations[key].push(t=>{outside.rotation.z=Math.sin(t*.5)*.009;head.rotation.y=Math.sin(t*.8)*.45;});
+    occasion(g,key,'bird-hop',(u,e)=>{bird.position.x=-1.36+e*.10;bird.position.y=2.59+e*.025+Math.abs(Math.sin(Math.max(0,u)*Math.PI*4))*e*.09;},{start:13,duration:3,period:36,sound:'bird',pan:.5});
     const t=bistroTable(g,.13,.76,.82);const pages=openBook(t,.03,.88,.12);pages.name="bookshop-open-book";flutterInk(pages.userData.turningPage,key,{page:true,amplitude:.085,speed:.75});readingLamp(t,-.46,.86,-.29,.86).rotation.y=Math.PI;for(let i=0;i<3;i++)book(g,1.18,.07+i*.09,-1.65,.46,.32,(i-1)*.12);
     line(g,[[-2.4,.01,-2.8],[-.4,.01,-2.8],[2.6,.01,-2.8],[2.8,.01,-1.6]],true);shadow(g,1.95,.013,-2.25,.75,.45,85);wallHatch(g,2.64,1.8,-2.85,.09,2.1,75);return g;}
   // The next five places share the same modeled ink vocabulary as the six studies.
@@ -280,6 +314,7 @@ export function createReferenceScenes({root,animations}) {
     rain(g,key,0,1.7,-3.7,5.0,2.6,65);potPlant(g,-1.55,0,-2.9,1.45,true,key);potPlant(g,1.7,0,-2.7,1.35,false,key);
     const t=bistroTable(g,-.15,.6,.92);coffee(t,-.22,.85,.20,key,.93);book(t,.30,.9,-.13,.42,.31,.12);
     const can=group(g,.90,.1,-1.80);cyl(can,.19,.19,.36,0,.18,0,shaded);rod(can,[.14,.1,0],[.5,.48,0],.045);const sp=cyl(can,.085,.045,.06,.52,.49,0);sp.rotation.z=-.7;line(can,[[-.18,.30,0],[-.37,.43,0],[-.40,.13,0],[-.18,.08,0]],true);
+    droplets(g,key,-1.35,2.05,-2.7,'greenhouse-drips');
     const basket=group(g,-1.35,3.1,-2.7);potPlant(basket,0,-1.1,0,.70,true,key);for(const xx of [-.17,.17])line(basket,[[xx,-.9,0],[0,0,0]],true);animations[key].push(t=>{basket.rotation.z=Math.sin(t*.7)*.065;basket.rotation.x=Math.sin(t*.55)*.035;});
     for(let i=0;i<8;i++)line(g,[[-2.8,.01,-3.2+i*.5],[0,.01,-3.2+i*.5],[2.8,.01,-3.2+i*.5]]);return g;
   }
@@ -293,6 +328,7 @@ export function createReferenceScenes({root,animations}) {
     const player=person(g,-1.23,.19,-2.50,.98,true,true);player.rotation.y=Math.PI;player.userData.arms.visible=false;
     const upper=player.userData.upper;for(const side of [-1,1]){const arm=group(upper,side*.10,.28,0);rod(arm,[0,0,0],[side*.07,-.12,.25],.018);rod(arm,[side*.07,-.12,.25],[side*.02,-.13,.50],.015);ball(arm,.035,.018,.04,side*.02,-.13,.50);animations[key].push(t=>arm.rotation.x=Math.sin(t*3+side)*.025);}
     animations[key].push(t=>{upper.rotation.z=Math.sin(t*.9)*.025;player.userData.head.rotation.x=Math.sin(t*1.4)*.055;});box(g,.55,.08,.36,-1.23,.84,-2.5,shaded);for(const xx of [-1.45,-1.01])rod(g,[xx,.82,-2.5],[xx,.18,-2.5],.025);
+    occasion(g,key,'pianist-glance',(u,e)=>{player.userData.head.rotation.y=e*.65;},{start:18,duration:5,period:42,sound:'jazz',pan:-.4});
     // A shaped double-bass body, strings and scroll, resting between songs.
     const bass=group(g,1.20,.34,-3.40);bass.rotation.z=-.10;const shape=new THREE.Shape();shape.moveTo(0,0);shape.bezierCurveTo(-.55,0,-.52,.52,-.24,.60);shape.bezierCurveTo(-.12,.68,-.43,.91,-.25,1.08);shape.bezierCurveTo(-.10,1.19,.10,1.19,.25,1.08);shape.bezierCurveTo(.43,.91,.12,.68,.24,.60);shape.bezierCurveTo(.52,.52,.55,0,0,0);
     mesh(bass,new THREE.ExtrudeGeometry(shape,{depth:.17,bevelEnabled:true,bevelSize:.025,bevelThickness:.02,bevelSegments:2,steps:1}),0,0,0,shaded);box(bass,.09,.85,.10,0,1.32,.10,ink);ball(bass,.08,.09,.055,0,1.79,.10,shaded);rod(bass,[0,0,.08],[0,-.18,.08],.012,ink);
@@ -308,13 +344,15 @@ export function createReferenceScenes({root,animations}) {
     for(let i=0;i<3;i++){const clothX=-1.65+i*1.08,clothY=2.78+.16*(clothX/2.65)**2;const cloth=group(g,clothX,clothY,-1.9);cloth.name="rooftop-laundry";const s=new THREE.Shape();if(i===1){s.moveTo(-.28,0);s.lineTo(.28,0);s.lineTo(.29,-.88);s.lineTo(-.27,-.88);}else{s.moveTo(-.16,0);s.lineTo(-.42,-.12);s.lineTo(-.34,-.35);s.lineTo(-.20,-.27);s.lineTo(-.22,-.80);s.lineTo(.23,-.80);s.lineTo(.21,-.27);s.lineTo(.35,-.35);s.lineTo(.43,-.12);s.lineTo(.16,0);s.quadraticCurveTo(0,-.15,-.16,0);}s.closePath();mesh(cloth,new THREE.ExtrudeGeometry(s,{depth:.013,bevelEnabled:false}));line(cloth,s.getPoints(18).map(v=>[v.x,v.y,.025]),true);for(const xx of [-.16,.16]){const peg=box(g,.04,.11,.04,clothX+xx,2.78+.16*((clothX+xx)/2.65)**2,-1.88,shaded,.004);peg.name="rooftop-peg";}for(const xx of [-.10,.05,.15])line(cloth,[[xx,-.18,.025],[xx-.02,-.45,.035],[xx+.02,-.73,.025]]);flutterInk(cloth,key,{top:0,length:.8,amplitude:.16,speed:.75+i*.08});}
     const t=bistroTable(g,.05,.8,.88);const radio=group(t,-.12,.87,-.04);box(radio,.62,.35,.20,0,.175,0,shaded,.035);for(let i=0;i<12;i++)line(radio,[[-.26+i*.027,.08,.107],[-.26+i*.027,.27,.107]]);for(const yy of [.10,.25]){const dial=cyl(radio,.045,.045,.02,.22,yy,.12);dial.rotation.x=Math.PI/2;}rod(radio,[.17,.33,0],[.40,.86,0],.005,ink);book(t,.30,.9,.27,.35,.25,-.18);
     const chair=foldingChair(g,1.42,.05,-.30);flutterInk(chair.userData.cloth,key,{top:1.22,length:.69,amplitude:.10});potPlant(g,-2.05,0,-.75,.9,false,key);for(let i=0;i<7;i++)line(g,[[-3,.01,-2.8+i*.55],[3,.01,-2.8+i*.55]]);
-    const bird=group(g,-1.2,.92,-3.2);ball(bird,.10,.08,.13,0,0,0,shaded);ball(bird,.06,.06,.06,.08,.10,0);line(bird,[[.13,.1,0],[.18,.08,0]]);animations[key].push(t=>bird.rotation.y=Math.sin(t*.23)*.25);return g;}
+    const bird=group(g,-1.2,.92,-3.2);ball(bird,.10,.08,.13,0,0,0,shaded);ball(bird,.06,.06,.06,.08,.10,0);line(bird,[[.13,.1,0],[.18,.08,0]]);animations[key].push(t=>bird.rotation.y=Math.sin(t*.23)*.25);occasion(g,key,'rooftop-bird-hop',(u,e)=>{bird.position.x=-1.2+e*.26;bird.position.y=.92+Math.abs(Math.sin(Math.max(0,u)*Math.PI*3))*e*.13;},{start:11,duration:3,period:34,sound:'bird',pan:-.4});return g;}
   function ferry(){const key='ferryStudy',g=group(root);
     line(g,[[-25,1.0,-26],[0,1.03,-26],[25,1.0,-26]]);movingWater(g,key,'ferry-water',.8);
     for(let i=0;i<13;i++){const xx=-3.6+i*.6;rod(g,[xx,0,-2.3],[xx,1.25,-2.3],.02,shaded);}for(const yy of [.47,.88,1.28])rod(g,[-3.7,yy,-2.3],[3.7,yy,-2.3],.024,shaded);
     const hanger=group(g,1.45,1.28,-2.15);const buoy=group(hanger,0,-.45,0);animations[key].push(t=>{hanger.rotation.z=Math.sin(t*.80)*.13;hanger.rotation.x=Math.sin(t*.65)*.09;});mesh(buoy,new THREE.TorusGeometry(.39,.10,12,64));for(let i=0;i<4;i++){const a=i*Math.PI/2;const band=mesh(buoy,new THREE.TorusGeometry(.39,.103,8,12,.26),0,0,.003,ink,false);band.rotation.z=a-.13;}const rope=[];for(let i=0;i<=64;i++){const a=i/64*6.283;rope.push([Math.cos(a)*.53,Math.sin(a)*.53,0]);}line(buoy,rope,true);
     // Lighthouse on a tiny headland, far beyond the deck.
     const land=group(g,-4.4,.75,-21);land.name='ferry-shore';animations[key].push(t=>land.position.x=((35.6-t*.12)%80+80)%80-40);line(land,[[-2.3,0,0],[-1.5,.18,0],[-.4,.30,0],[.9,.22,0],[2.2,0,0]],true);cyl(land,.17,.29,1.4,0,.88,0);cyl(land,.30,.30,.09,0,1.61,0,shaded);cyl(land,.19,.19,.30,0,1.8,0);mesh(land,new THREE.ConeGeometry(.30,.21,20),0,2.05,0,shaded);for(const xx of [-.13,.13])rod(land,[xx,1.66,.16],[xx,1.96,.16],.01,ink);rect(land,0,.57,.28,.13,.28,.02);
+    const crossing=group(g,0,.43,-13);crossing.name='ferry-fishing-boat';box(crossing,1.1,.19,.36,0,0,0,shaded,.08);box(crossing,.34,.31,.29,-.13,.25,0);rod(crossing,[.1,.1,0],[.1,.85,0],.012);line(crossing,[[-.42,.1,0],[.1,.8,0],[.47,.1,0]]);
+    occasion(g,key,'fishing-boat',(u)=>{crossing.visible=u>=0;crossing.position.x=-17+34*Math.max(0,u);crossing.position.y=.43+Math.sin(u*30)*.025;},{start:17,duration:22,period:74,sound:'horn',pan:-.4});
     const bench=group(g,-1.65,0,.05);bench.rotation.y=.10;for(let i=0;i<5;i++){box(bench,1.40,.055,.10,0,.50,-.25+i*.12,shaded);box(bench,1.40,.10,.055,0,.79+i*.13,-.31,shaded);}for(const xx of [-.55,.55]){rod(bench,[xx,.48,.20],[xx,.03,.25],.025);rod(bench,[xx,.03,-.30],[xx,1.32,-.30],.025);}book(bench,.12,.59,.03,.42,.29,.05);
     const bollard=group(g,1.9,0,.8);cyl(bollard,.13,.18,.34,0,.17,0,shaded);rod(bollard,[-.25,.30,0],[.25,.30,0],.055,shaded);for(let i=0;i<5;i++)ellipse(g,.38-i*.04,.30-i*.03,1.65,.02+i*.008,1.15,true);
     for(let i=0;i<11;i++)line(g,[[-4,.003,-2+i*.42],[4,.003,-2+i*.42]]);for(let i=0;i<3;i++)gullFlight(g,key,-2+i*2.3,2.3+i*.20,-9,.8);return g;}
@@ -324,6 +362,7 @@ export function createReferenceScenes({root,animations}) {
     const moon=mesh(g,new THREE.CircleGeometry(.15,40),.69,2.68,-2.91,plain,false);mesh(g,new THREE.CircleGeometry(.14,40),.75,2.72,-2.89,ink,false);for(const [x,y]of [[-.39,2.77],[.12,2.53],[.84,1.98],[-.3,1.81]]){line(g,[[x-.025,y,-2.89],[x+.025,y,-2.89]],false,true);line(g,[[x,y-.025,-2.89],[x,y+.025,-2.89]],false,true);}
     box(g,4.2,.08,.85,.15,.91,-2.58,shaded);box(g,4.10,.84,.73,.15,.44,-2.61);for(const xx of [-1.4,-.4,.6,1.6]){rect(g,xx,.46,-2.235,.86,.70,.015);rod(g,[xx-.1,.70,-2.20],[xx+.1,.70,-2.20],.012,ink);}
     box(g,.91,.015,.54,.15,.963,-2.57,ink,.07);box(g,.82,.018,.46,.15,.972,-2.57,paper,.06);const tap=new THREE.CatmullRomCurve3([[.42,.96,-2.82],[.42,1.28,-2.82],[.22,1.36,-2.82],[.16,1.25,-2.69]].map(V));mesh(g,new THREE.TubeGeometry(tap,30,.022,9,false));
+    droplets(g,key,.16,1.22,-2.69,'kitchen-drip');
     const fridge=group(g,-2.50,0,-2.65);box(fridge,.82,2.16,.72,0,1.08,0,paper,.07);line(fridge,[[-.38,1.54,.37],[.38,1.54,.37]],true);for(const yy of [1.25,1.80])rod(fridge,[.27,yy-.1,.42],[.27,yy+.1,.42],.018,shaded);rect(fridge,-.07,1.18,.37,.24,.30,.003);line(fridge,[[-.15,1.20,.38],[.03,1.20,.38],[-.1,1.14,.38],[.02,1.14,.38]]);
     const clock=group(g,1.95,2.4,-2.9);const face=cyl(clock,.27,.27,.035,0,0,0);face.rotation.x=Math.PI/2;for(let i=0;i<12;i++){const a=i/12*6.283;line(clock,[[Math.sin(a)*.21,Math.cos(a)*.21,.025],[Math.sin(a)*.23,Math.cos(a)*.23,.025]]);}line(clock,[[0,.15,.03],[0,0,.03],[.13,-.03,.03]],true);box(clock,.42,.42,.07,0,-.40,-.04,shaded,.03);const pendulum=group(clock,0,-.18,.025);rod(pendulum,[0,0,0],[0,-.35,0],.009,ink);ball(pendulum,.07,.07,.018,0,-.35,.015);animations[key].push(t=>pendulum.rotation.z=Math.sin(t*2.1)*.24);
     const t=bistroTable(g,.10,.85,1.20);coffee(t,-.35,.85,.24,key,1.0);const kettle=group(t,.43,.86,-.20);ball(kettle,.23,.22,.22,0,.22,0,shaded);cyl(kettle,.14,.16,.025,0,.42,0);ball(kettle,.04,.03,.04,0,.46,0,ink);rod(kettle,[-.18,.20,0],[-.40,.40,0],.045);line(kettle,[[.16,.10,0],[.39,.15,0],[.40,.36,0],[.17,.40,0]],true);
@@ -331,7 +370,7 @@ export function createReferenceScenes({root,animations}) {
     line(g,[[-3.2,.01,-2.1],[3.2,.01,-2.1]],true);return g;}
 
   const factories={home,paris,train,cabin,seaside,bookstore,greenhouse,jazz,rooftop,ferry,kitchen};
-  const views={home:{eye:[0,1.65,3.7],pitch:-.10,fov:47},paris:{eye:[0,1.65,3.7],pitch:-.08,fov:47},train:{eye:[0,1.65,3.4],pitch:-.10,fov:49},cabin:{eye:[0,1.65,3.7],pitch:-.09,fov:48},seaside:{eye:[0,1.65,3.7],pitch:-.04,fov:49},bookstore:{eye:[0,1.65,3.5],pitch:-.08,fov:48}};
-  for(const key of ['greenhouse','jazz','rooftop','ferry','kitchen'])views[key]={eye:[0,1.65,3.7],pitch:-.08,fov:49};
+  const views={home:{eye:[0,1.45,3.15],pitch:-.10,fov:47},paris:{eye:[0,1.45,3.15],pitch:-.08,fov:47},train:{eye:[0,1.45,2.8],pitch:-.10,fov:49},cabin:{eye:[0,1.45,3.15],pitch:-.09,fov:48},seaside:{eye:[0,1.45,3.15],pitch:-.04,fov:49},bookstore:{eye:[0,1.45,3.0],pitch:-.08,fov:48}};
+  for(const key of ['greenhouse','jazz','rooftop','ferry','kitchen'])views[key]={eye:[0,1.45,3.15],pitch:-.08,fov:49};
   const result={};for(const [key,make] of Object.entries(factories)){animations[key+'Study']=[];result[key]={make:()=>{seed=418+Object.keys(factories).indexOf(key)*7919;return make();},...views[key],yaw:0,reference:['home','paris','train','cabin','seaside','bookstore'].includes(key)?'references/midjourney/'+key+'.png':null,animation:key+'Study'};}return result;
 }
