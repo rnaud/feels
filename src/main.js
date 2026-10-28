@@ -115,7 +115,7 @@ function render(){
  const smoothing=reducedMotion?1:.065;
  yaw+=(targetYaw+px-yaw)*smoothing;pitch+=(targetPitch+py-pitch)*smoothing;
  const study=referenceStudies[activeScene];
- const view=study,heading=view.yaw+yaw+(camera.aspect<.8?({cabin:-.10,ferry:-.18,bookstore:.04}[activeScene]||0):0),elevation=view.pitch+pitch;
+ const view=study,heading=view.yaw+yaw+(camera.aspect<.8?({cabin:-.10,ferry:-.18,bookstore:.04,porch:.28}[activeScene]||0):0),elevation=view.pitch+pitch;
  camera.position.fromArray(view.eye);
  cameraTarget.set(Math.sin(heading)*Math.cos(elevation),Math.sin(elevation),-Math.cos(heading)*Math.cos(elevation)).add(camera.position);
  camera.lookAt(cameraTarget);

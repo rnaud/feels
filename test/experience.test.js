@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {eventPhase,eventEnvelope} from '../src/scene-events.js';
 import {framedFov} from '../src/view-framing.js';
 import {Ambience} from '../src/ambience.js';
+import {sceneDefinitions} from '../src/scene-catalog.js';
 
 test('events have quiet intervals, smooth entrances, and repeat at the same phase',()=>{
  const event={start:12,duration:5,period:43};
@@ -53,8 +54,8 @@ test('all sound scenes construct and clean up their routing without audio output
  const audio=new Ambience();
  try{
   await audio.toggle('home');assert.equal(audio.enabled,true);
-  for(const scene of ['paris','train','cabin','seaside','bookstore','greenhouse','jazz','rooftop','ferry','kitchen'])audio.setScene(scene);
-  for(const sound of ['bicycle','train','fire','wave','bird','drip','fabric','horn','jazz'])audio.eventSound({sound,pan:.3});
+  for(const scene of Object.keys(sceneDefinitions))audio.setScene(scene);
+  for(const sound of ['bicycle','train','fire','wave','bird','drip','fabric','horn','jazz','laundry-done','footsteps','breeze'])audio.eventSound({sound,pan:.3});
   audio.setHeading(.4);await audio.toggle('kitchen');assert.equal(audio.enabled,false);
   await new Promise(resolve=>setTimeout(resolve,950));
   assert(nodes.some(n=>n.disconnected));

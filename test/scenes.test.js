@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { createReferenceScenes } from '../src/reference-scenes.js';
+import { sceneDefinitions } from '../src/scene-catalog.js';
+import { laundryRotation } from '../src/new-scenes.js';
 
 // Only the café's small lettering texture needs a canvas during scene creation.
 // All geometry and animation below use the real Three.js objects.
@@ -22,7 +24,7 @@ function state(world) {
   });
   return values;
 }
-for (const key of ['home','paris','train','cabin','seaside','bookstore','greenhouse','jazz','rooftop','ferry','kitchen']) {
+for (const key of Object.keys(sceneDefinitions)) {
   test(`${key}: motion is finite and never accumulates deformation`, () => {
     const { world, update } = fixture(key);
     update(.5); const first = state(world);
@@ -102,7 +104,7 @@ test('rooftop laundry moves while its pegs remain fixed', () => {
   assert.notDeepEqual(state(cloth), clothBefore);
 });
 
-for (const key of ['home','paris','train','cabin','seaside','bookstore','greenhouse','jazz','rooftop','ferry','kitchen']) {
+for (const key of Object.keys(sceneDefinitions)) {
  test(`${key}: occasional event completes and repeats without drift`,()=>{
   const {world,update}=fixture(key),events=world.userData.events;
   assert(events?.length>0);
@@ -116,3 +118,34 @@ for (const key of ['home','paris','train','cabin','seaside','bookstore','greenho
   }
  });
 }
+
+test('middle washer slows continuously, rests, and resumes while its neighbours keep turning',()=>{
+ for(const boundary of [18,22,30,34,54,76]){
+  assert(Math.abs(laundryRotation(boundary+.0001)-laundryRotation(boundary-.0001))<.001);
+ }
+ assert.equal(laundryRotation(23),laundryRotation(29));
+ assert(laundryRotation(35)>laundryRotation(30));
+ const {world,update}=fixture('laundromat');
+ update(23);const angles=[0,1,2].map(i=>world.getObjectByName('washer-drum-'+i).rotation.z);
+ update(29);assert.equal(world.getObjectByName('washer-drum-1').rotation.z,angles[1]);
+ assert.notEqual(world.getObjectByName('washer-drum-0').rotation.z,angles[0]);
+ assert.notEqual(world.getObjectByName('washer-drum-2').rotation.z,angles[2]);
+});
+test('porch swing keeps its suspension points fixed',()=>{
+ const {world,update}=fixture('porch'),swing=world.getObjectByName('porch-swing');
+ const anchors=()=>[-.62,.62].map(x=>swing.localToWorld(new THREE.Vector3(x,0,0)).toArray());
+ update(0);const before=anchors();update(2);assert.deepEqual(anchors(),before);
+ assert(Math.abs(swing.rotation.x)>.01);
+});
+test('pottery wheel turns the bowl and platter together without moving its stand',()=>{
+ const {world,update}=fixture('pottery'),wheel=world.getObjectByName('pottery-wheel'),platter=world.getObjectByName('pottery-platter');
+ update(0);const base=wheel.children.filter(child=>child!==platter).map(state);
+ update(5);assert(platter.rotation.y>1);wheel.children.filter(child=>child!==platter).forEach((child,i)=>assert.deepEqual(state(child),base[i]));
+});
+test('cinema visitor and porch bird leave the scene between events',()=>{
+ for(const [key,name]of [['cinema','cinema-passer'],['porch','porch-visitor']]){
+  const {world,update}=fixture(key),object=world.getObjectByName(name),event=world.userData.events[0];
+  update(0);assert.equal(object.visible,false);update(event.start+event.duration/2);assert.equal(object.visible,true);
+  update(event.start+event.duration+.1);assert.equal(object.visible,false);
+ }
+});

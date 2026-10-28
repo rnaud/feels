@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { penPaper } from './pen-material.js';
 import { eventPhase, eventEnvelope } from './scene-events.js';
+import { createNewScenes } from './new-scenes.js';
 
 // Actual volumes and surface-attached ink. The Midjourney drawings are only
 // references: no image planes, cutouts or projected artwork enter these worlds.
@@ -369,8 +370,10 @@ export function createReferenceScenes({root,animations}) {
     saucer(t,.33,.85,.36,.27);box(t,.28,.035,.24,.33,.92,.36,shaded,.045);for(let i=0;i<18;i++){const xx=.22+rnd()*.22,zz=.28+rnd()*.17;line(t,[[xx,.94,zz],[xx+.012,.94,zz+.02]]);}bentChair(g,1.65,-.28,-.18,true);
     line(g,[[-3.2,.01,-2.1],[3.2,.01,-2.1]],true);return g;}
 
-  const factories={home,paris,train,cabin,seaside,bookstore,greenhouse,jazz,rooftop,ferry,kitchen};
+  const added=createNewScenes({root,animations,group,mesh,box,ball,cyl,line,rod,ellipse,rect,shadow,window,coffee,book,tree,person,potPlant,flutterInk,occasion,ink,plain,paper,shaded,dark});
+  const factories={home,paris,train,cabin,seaside,bookstore,greenhouse,jazz,rooftop,ferry,kitchen,...added};
   const views={home:{eye:[0,1.45,3.15],pitch:-.10,fov:47},paris:{eye:[0,1.45,3.15],pitch:-.08,fov:47},train:{eye:[0,1.45,2.8],pitch:-.10,fov:49},cabin:{eye:[0,1.45,3.15],pitch:-.09,fov:48},seaside:{eye:[0,1.45,3.15],pitch:-.04,fov:49},bookstore:{eye:[0,1.45,3.0],pitch:-.08,fov:48}};
   for(const key of ['greenhouse','jazz','rooftop','ferry','kitchen'])views[key]={eye:[0,1.45,3.15],pitch:-.08,fov:49};
+  Object.assign(views,{laundromat:{eye:[0,1.35,3.1],pitch:-.08,fov:49},cinema:{eye:[0,1.30,3.0],pitch:.02,fov:52},picnic:{eye:[0,.82,2.65],pitch:-.12,fov:52},pottery:{eye:[0,1.37,2.8],pitch:-.14,fov:49},porch:{eye:[0,1.28,2.7],pitch:-.10,fov:52}});
   const result={};for(const [key,make] of Object.entries(factories)){animations[key+'Study']=[];result[key]={make:()=>{seed=418+Object.keys(factories).indexOf(key)*7919;return make();},...views[key],yaw:0,reference:['home','paris','train','cabin','seaside','bookstore'].includes(key)?'references/midjourney/'+key+'.png':null,animation:key+'Study'};}return result;
 }

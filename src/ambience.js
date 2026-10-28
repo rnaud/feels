@@ -12,7 +12,12 @@ const layers={
  jazz:[[500,'lowpass',.018,.3,.65],[4200,'highpass',.008,.8,-.5]],
  rooftop:[[680,'lowpass',.12,.09,-.4],[330,'bandpass',.025,.21,.5]],
  ferry:[[110,'lowpass',.25,.45,0],[1200,'lowpass',.20,.13,-.6],[2300,'highpass',.055,.15,.6]],
- kitchen:[[100,'lowpass',.035,0,-.65],[2100,'highpass',.006,.11,.3]]
+ kitchen:[[100,'lowpass',.035,0,-.65],[2100,'highpass',.006,.11,.3]],
+ laundromat:[[130,'lowpass',.10,.48,-.5],[190,'bandpass',.055,.38,.5],[1100,'lowpass',.025,.1,0]],
+ cinema:[[150,'lowpass',.025,0,.6],[650,'bandpass',.009,.12,-.5]],
+ picnic:[[1100,'lowpass',.055,.14,-.5],[2600,'highpass',.025,.19,.4]],
+ pottery:[[180,'lowpass',.045,.38,0],[1200,'bandpass',.015,.12,.5]],
+ porch:[[800,'lowpass',.035,.12,-.5],[2400,'highpass',.018,.16,.5]]
 };
 export class Ambience {
  constructor(){this.ctx=null;this.enabled=false;this.volume=.4;this.nodes=[];this.spatial=new Set();this.timer=null;this.heading=0;this.eventHistory=new Map();}
@@ -66,7 +71,7 @@ export class Ambience {
   if(oldBus){oldBus.gain.setTargetAtTime(0,this.ctx.currentTime,.15);setTimeout(()=>{for(const n of old){if(n.stop)try{n.stop();}catch{}n.disconnect();}oldBus.disconnect();},900);}
   this.nodes=[];this.bus=this.ctx.createGain();this.bus.gain.value=0;this.bus.connect(this.master);this.bus.gain.setTargetAtTime(1,this.ctx.currentTime,.3);
   // A short, very quiet room reflection distinguishes interiors from open air.
-  if(['home','cabin','bookstore','jazz','kitchen'].includes(name)){
+  if(['home','cabin','bookstore','jazz','kitchen','laundromat','cinema','pottery'].includes(name)){
    const delay=this.ctx.createDelay(.3),reflection=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
    delay.delayTime.value=name==='jazz'?.13:.065;reflection.gain.value=.12;filter.type='lowpass';filter.frequency.value=1800;
    this.bus.connect(delay);delay.connect(filter);filter.connect(reflection);reflection.connect(this.master);this.nodes.push(delay,filter,reflection);
@@ -81,6 +86,9 @@ export class Ambience {
   }
  }
  eventSound({sound,pan}){
+  if(sound==='laundry-done'){this.tone(880,.35,.010,'sine',pan);this.tone(1320,.6,.005,'sine',pan);}
+  if(sound==='footsteps')this.rustle(380,2,.024,pan);
+  if(sound==='breeze')this.rustle(1500,4,.045,pan);
   if(sound==='bicycle'){this.rustle(1400,6,.045,pan);this.tone(2400,.5,.012,'sine',pan);}
   if(sound==='train'){this.rustle(450,5.8,.22,pan);this.rustle(1700,4,.08,-pan);}
   if(sound==='fire')this.rustle(1900,.18,.10,pan);
@@ -93,8 +101,13 @@ export class Ambience {
  }
  schedule(name){
   if(!this.enabled)return;
-  const delays={home:()=>600+Math.random()*1500,paris:()=>2600+Math.random()*5000,train:()=>690,cabin:()=>350+Math.random()*1400,seaside:()=>9000+Math.random()*8000,bookstore:()=>4000+Math.random()*6000,greenhouse:()=>600+Math.random()*1500,jazz:()=>900,rooftop:()=>7000+Math.random()*7000,ferry:()=>15000+Math.random()*9000,kitchen:()=>1000};
+  const delays={home:()=>600+Math.random()*1500,paris:()=>2600+Math.random()*5000,train:()=>690,cabin:()=>350+Math.random()*1400,seaside:()=>9000+Math.random()*8000,bookstore:()=>4000+Math.random()*6000,greenhouse:()=>600+Math.random()*1500,jazz:()=>900,rooftop:()=>7000+Math.random()*7000,ferry:()=>15000+Math.random()*9000,kitchen:()=>1000,laundromat:()=>2300,cinema:()=>7000+Math.random()*5000,picnic:()=>7000+Math.random()*6000,pottery:()=>4100,porch:()=>1700+Math.random()*2600};
   this.timer=setTimeout(()=>{
+   if(name==='laundromat')this.rustle(260,.16,.028,-.45);
+   if(name==='cinema')this.rustle(900,.7,.012,.6);
+   if(name==='picnic')this.tone(2400,.20,.006,'sine',-.5,1.2);
+   if(name==='pottery')this.rustle(600,.6,.018,0);
+   if(name==='porch')this.tone(1400,.11,.008,'sine',-.6,.6);
    if(name==='home')this.tone(900+Math.random()*600,.08,.009,'sine',-.3, .65);
    if(name==='paris'){this.tone(2100,.30,.014,'sine',-.3);this.tone(3100,.16,.004,'sine',-.3);this.rustle(650,1.1,.02,.6);}
    if(name==='train'){this.tone(85,.11,.04,'sine',.2);this.rustle(380,.09,.065,-.3);}
