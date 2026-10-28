@@ -1,0 +1,49 @@
+{
+  "tool": "Midjourney website",
+  "model": "V7",
+  "direction": "Sempé-inspired, polished but sparse; generated references, not original Sempé artwork",
+  "studies": [
+    {
+      "scene": "home",
+      "job": "9e8a545f-5969-4094-b539-f6157d7f490a",
+      "selectedIndex": 1,
+      "prompt": "Jean-Jacques Sempe, a very simple black ink cartoon. First-person view of a coffee cup on a table beside a rainy window, a small sleeping cat on the sill. Just a few elegant thin pen lines on pristine white paper. Quiet warmth, graceful understatement, lots of empty space. Close cropped cup in the foreground. --ar 3:2 --v 7 --no crosshatching, hatching, stippling, shading, paper texture, color, text",
+      "savedAsset": "home.png"
+    },
+    {
+      "scene": "paris",
+      "job": "4d78b850-8bce-4938-86a9-9a81b26e2e93",
+      "selectedIndex": 0,
+      "prompt": "A black-and-white pen drawing in the style of Jean-Jacques Sempe. The quiet pleasure of sitting at a Paris sidewalk cafe. Seen through my own eyes at a little round table: coffee cup and croissant large in the cropped foreground, one empty bentwood chair beside me. Beyond, a small waiter and two tiny pedestrians beneath a single elegantly suggested Paris facade, a leafy tree to one side. A strip of cafe awning overhead. Lots of breathing room. Delicate, assured, graceful pen lines, tender understated humor, gently irregular perspective. Sparse and beautifully composed, vast areas of untouched white paper, just a few tiny black accents. An intimate first-person moment, no visible observer. --ar 3:2 --v 7 --no color, watercolor, gray wash, heavy shading, thick outlines, lettering",
+      "savedAsset": "paris.png"
+    },
+    {
+      "scene": "train",
+      "job": "ec8ad97b-5790-4748-993c-ff10e78c4922",
+      "selectedIndex": 1,
+      "prompt": "A black-and-white pen drawing in the style of Jean-Jacques Sempe. The peaceful feeling of a slow train journey, seen through my own eyes from a window seat. A large rounded rectangular train window frames an almost empty countryside: one rolling hill, three tiny trees, a distant little house. Close to me at lower right, a coffee cup and closed book on the small window table. Just the curved edge of the opposite seat. Nothing else. Delicate, assured, graceful pen lines, tender understated humor, gently irregular perspective. Sparse and beautifully composed, vast areas of untouched white paper, just a few tiny black accents. An intimate first-person moment, no visible observer. --ar 3:2 --v 7 --no color, watercolor, gray wash, heavy shading, thick outlines, lettering",
+      "savedAsset": "train.png"
+    },
+    {
+      "scene": "cabin",
+      "job": "537cbce7-95a7-4c50-977c-bde1c10101d8",
+      "selectedIndex": 0,
+      "prompt": "A black-and-white pen drawing in the style of Jean-Jacques Sempe. The comforting feeling of sitting beside a small fireplace in a snowy cabin, seen through my own eyes from an armchair. A modest arched fireplace, two logs and a little flame. A tall window to the left frames just three small fir trees and falling snow. A cup on a small side table close to me at lower right. Only these few objects, surrounded by white space. Fine economical contour drawing. Delicate, assured, graceful pen lines, tender understated humor, gently irregular perspective. Sparse and beautifully composed, vast areas of untouched white paper, just a few tiny black accents. An intimate first-person moment, no visible observer. --ar 3:2 --v 7 --no color, watercolor, gray wash, heavy shading, thick outlines, lettering",
+      "savedAsset": "cabin.png"
+    },
+    {
+      "scene": "seaside",
+      "job": "08e01227-733b-4b9f-88d8-0121cb2c902e",
+      "selectedIndex": 1,
+      "prompt": "A black-and-white pen drawing in the style of Jean-Jacques Sempe. The quiet pleasure of sitting on a balcony facing the sea, seen through my own eyes. A cup and small round table cropped in the close lower left foreground, one empty elegant chair at right, a very simple slender balcony railing. Beyond is vast empty sea and sky, only one tiny sailboat and two small curved wave marks. A striped towel draped over the railing. Fine economical contour drawing. Delicate, assured, graceful pen lines, tender understated humor, gently irregular perspective. Sparse and beautifully composed, vast areas of untouched white paper, just a few tiny black accents. An intimate first-person moment, no visible observer. --ar 3:2 --v 7 --no color, watercolor, gray wash, heavy shading, thick outlines, lettering",
+      "savedAsset": "seaside.png"
+    },
+    {
+      "scene": "bookstore",
+      "job": "8397c488-e2c8-4212-b3f4-841e7c00f5f3",
+      "selectedIndex": 0,
+      "prompt": "A black-and-white pen drawing in the style of Jean-Jacques Sempe. The quiet pleasure of reading in a tiny bookshop, seen through my own eyes from a comfortable seat. An open book very close on the small round table in the lower foreground. A slender curved reading lamp beside it. To the left, just one narrow bookcase with three shelves and a few irregular books. A tall window ahead shows the delicate branch of a tree. Fine economical contour drawing, a little inhabited corner and plenty of empty paper. Delicate, assured, graceful pen lines, tender understated humor, gently irregular perspective. Sparse and beautifully composed, vast areas of untouched white paper, just a few tiny black accents. An intimate first-person moment, no visible observer. --ar 3:2 --v 7 --no color, watercolor, gray wash, heavy shading, thick outlines, lettering",
+      "savedAsset": "bookstore.png"
+    }
+  ]
+}
