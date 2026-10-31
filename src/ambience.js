@@ -17,7 +17,12 @@ const layers={
  cinema:[[150,'lowpass',.025,0,.6],[650,'bandpass',.009,.12,-.5]],
  picnic:[[1100,'lowpass',.055,.14,-.5],[2600,'highpass',.025,.19,.4]],
  pottery:[[180,'lowpass',.045,.38,0],[1200,'bandpass',.015,.12,.5]],
- porch:[[800,'lowpass',.035,.12,-.5],[2400,'highpass',.018,.16,.5]]
+ porch:[[800,'lowpass',.035,.12,-.5],[2400,'highpass',.018,.16,.5]],
+ kyoto:[[420,'lowpass',.040,.14,-.4],[2400,'highpass',.050,.11,.25],[120,'lowpass',.018,0,0]],
+ marrakech:[[900,'lowpass',.050,.18,-.2],[300,'bandpass',.020,.33,.5],[2600,'highpass',.020,.20,-.4]],
+ oaxaca:[[4200,'highpass',.018,.65,-.4],[520,'lowpass',.045,.18,.3],[180,'lowpass',.020,0,0]],
+ hanoi:[[260,'lowpass',.070,.32,-.3],[950,'bandpass',.018,.22,.4],[3200,'highpass',.015,.15,0]],
+ kenya:[[700,'lowpass',.045,.14,-.2],[2800,'highpass',.020,.18,.5],[1500,'lowpass',.025,.10,0]]
 };
 export class Ambience {
  constructor(){this.ctx=null;this.enabled=false;this.volume=.4;this.nodes=[];this.spatial=new Set();this.timer=null;this.heading=0;this.eventHistory=new Map();}
@@ -71,7 +76,7 @@ export class Ambience {
   if(oldBus){oldBus.gain.setTargetAtTime(0,this.ctx.currentTime,.15);setTimeout(()=>{for(const n of old){if(n.stop)try{n.stop();}catch{}n.disconnect();}oldBus.disconnect();},900);}
   this.nodes=[];this.bus=this.ctx.createGain();this.bus.gain.value=0;this.bus.connect(this.master);this.bus.gain.setTargetAtTime(1,this.ctx.currentTime,.3);
   // A short, very quiet room reflection distinguishes interiors from open air.
-  if(['home','cabin','bookstore','jazz','kitchen','laundromat','cinema','pottery'].includes(name)){
+  if(['home','cabin','bookstore','jazz','kitchen','laundromat','cinema','pottery','kyoto','marrakech','oaxaca'].includes(name)){
    const delay=this.ctx.createDelay(.3),reflection=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
    delay.delayTime.value=name==='jazz'?.13:.065;reflection.gain.value=.12;filter.type='lowpass';filter.frequency.value=1800;
    this.bus.connect(delay);delay.connect(filter);filter.connect(reflection);reflection.connect(this.master);this.nodes.push(delay,filter,reflection);
@@ -98,10 +103,13 @@ export class Ambience {
   if(sound==='fabric')this.rustle(1200,.7,.025,pan);
   if(sound==='horn'){this.tone(146.83,2.4,.014,'sine',pan);this.tone(220,2.2,.006,'sine',pan);}
   if(sound==='jazz')this.rustle(4500,.8,.016,pan);
+  if(sound==='clack'){this.tone(640,.09,.018,'square',pan,1.45);this.tone(860,.05,.007,'square',pan,.9);}
+  if(sound==='water'){this.rustle(1500,2.8,.040,pan);this.tone(900,.40,.006,'sine',pan,.70);}
+  if(sound==='hum'){this.rustle(3600,.7,.005,pan);this.tone(280,.35,.003,'sawtooth',pan,1.35);}
  }
  schedule(name){
   if(!this.enabled)return;
-  const delays={home:()=>600+Math.random()*1500,paris:()=>2600+Math.random()*5000,train:()=>690,cabin:()=>350+Math.random()*1400,seaside:()=>9000+Math.random()*8000,bookstore:()=>4000+Math.random()*6000,greenhouse:()=>600+Math.random()*1500,jazz:()=>900,rooftop:()=>7000+Math.random()*7000,ferry:()=>15000+Math.random()*9000,kitchen:()=>1000,laundromat:()=>2300,cinema:()=>7000+Math.random()*5000,picnic:()=>7000+Math.random()*6000,pottery:()=>4100,porch:()=>1700+Math.random()*2600};
+  const delays={home:()=>600+Math.random()*1500,paris:()=>2600+Math.random()*5000,train:()=>690,cabin:()=>350+Math.random()*1400,seaside:()=>9000+Math.random()*8000,bookstore:()=>4000+Math.random()*6000,greenhouse:()=>600+Math.random()*1500,jazz:()=>900,rooftop:()=>7000+Math.random()*7000,ferry:()=>15000+Math.random()*9000,kitchen:()=>1000,laundromat:()=>2300,cinema:()=>7000+Math.random()*5000,picnic:()=>7000+Math.random()*6000,pottery:()=>4100,porch:()=>1700+Math.random()*2600,kyoto:()=>3600+Math.random()*4000,marrakech:()=>2400+Math.random()*3800,oaxaca:()=>3000+Math.random()*4500,hanoi:()=>1400+Math.random()*2600,kenya:()=>2600+Math.random()*3500};
   this.timer=setTimeout(()=>{
    if(name==='laundromat')this.rustle(260,.16,.028,-.45);
    if(name==='cinema')this.rustle(900,.7,.012,.6);
@@ -125,6 +133,11 @@ export class Ambience {
    if(name==='rooftop')this.tone(2100,.15,.006,'sine',-.6,1.2);
    if(name==='ferry')this.rustle(1400,3,.045,.5);
    if(name==='kitchen')this.tone(700,.018,.004,'sine',.55);
+   if(name==='kyoto'){this.tone(1180,.15,.006,'sine',-.4,.65);this.rustle(1800,.35,.012,-.2);}
+   if(name==='marrakech'){this.rustle(1100,2.2,.028,-.3);this.tone(2100,.20,.005,'sine',.4,1.2);}
+   if(name==='oaxaca'){this.rustle(4800,.9,.008,-.4);this.tone(196,1.4,.006,'triangle',.3);}
+   if(name==='hanoi'){this.rustle(420,.8,.030,-.4);this.tone(210,.25,.006,'sine',.5,1.1);}
+   if(name==='kenya'){this.tone(2500,.22,.006,'sine',.5,1.3);this.rustle(1800,1.2,.020,-.1);}
    this.schedule(name);
   },(delays[name]||delays.home)());
  }

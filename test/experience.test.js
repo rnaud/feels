@@ -55,7 +55,7 @@ test('all sound scenes construct and clean up their routing without audio output
  try{
   await audio.toggle('home');assert.equal(audio.enabled,true);
   for(const scene of Object.keys(sceneDefinitions))audio.setScene(scene);
-  for(const sound of ['bicycle','train','fire','wave','bird','drip','fabric','horn','jazz','laundry-done','footsteps','breeze'])audio.eventSound({sound,pan:.3});
+  for(const sound of ['bicycle','train','fire','wave','bird','drip','fabric','horn','jazz','laundry-done','footsteps','breeze','clack','water','hum'])audio.eventSound({sound,pan:.3});
   audio.setHeading(.4);await audio.toggle('kitchen');assert.equal(audio.enabled,false);
   await new Promise(resolve=>setTimeout(resolve,950));
   assert(nodes.some(n=>n.disconnected));

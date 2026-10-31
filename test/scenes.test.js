@@ -142,8 +142,8 @@ test('pottery wheel turns the bowl and platter together without moving its stand
  update(0);const base=wheel.children.filter(child=>child!==platter).map(state);
  update(5);assert(platter.rotation.y>1);wheel.children.filter(child=>child!==platter).forEach((child,i)=>assert.deepEqual(state(child),base[i]));
 });
-test('cinema visitor and porch bird leave the scene between events',()=>{
- for(const [key,name]of [['cinema','cinema-passer'],['porch','porch-visitor']]){
+test('occasional visitors leave the scene between events',()=>{
+ for(const [key,name]of [['cinema','cinema-passer'],['porch','porch-visitor'],['marrakech','marrakech-pigeon'],['oaxaca','oaxaca-hummingbird'],['hanoi','hanoi-vendor'],['kenya','kenya-picker']]){
   const {world,update}=fixture(key),object=world.getObjectByName(name),event=world.userData.events[0];
   update(0);assert.equal(object.visible,false);update(event.start+event.duration/2);assert.equal(object.visible,true);
   update(event.start+event.duration+.1);assert.equal(object.visible,false);
