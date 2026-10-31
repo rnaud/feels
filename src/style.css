@@ -29,3 +29,25 @@
 .immersive-controls button{min-width:44px;min-height:44px;padding:10px 15px;background:#fff;border:1px solid #171717;font-size:11px}.immersive-place{display:flex;align-items:center;gap:16px;background:#fff;padding:0 8px}.immersive-place button{border:0;font-size:22px}.immersive-place span{font:italic 19px 'Playfair Display',Georgia,serif}
 body.immersive{overflow:hidden}body.immersive .world{position:fixed;inset:0;margin:0;width:100%;height:100dvh;border:0;z-index:10;background:white}body.immersive #scene{height:100%;width:100%}body.immersive .scene-caption,body.immersive .reset-view,body.immersive .study-switch,body.immersive .enter-immersive{display:none}body.immersive.quiet-controls .immersive-controls{opacity:0;visibility:hidden;pointer-events:none}body.immersive.quiet-controls #scene{cursor:none}
 @media(max-width:700px){.world{height:min(620px,calc(115vw + 42px))}.enter-immersive{top:9px;right:9px;min-height:36px;font-size:9px}.study-switch button{min-height:36px}.immersive-controls{left:14px;right:14px;bottom:max(14px,env(safe-area-inset-bottom));flex-wrap:wrap;gap:12px}.immersive-place{order:-1;width:100%;justify-content:space-between}.immersive-place span{font-size:18px}.immersive-controls button{min-height:44px}.immersive-controls #leave-immersive,.immersive-controls #immersive-sound{font-size:10px}.scene-caption{width:100%;justify-content:center}}
+
+/* Compact index: more places at a glance, each with a small drawn mark. */
+.place-index{display:flex;align-items:flex-start;gap:7px;flex:none;min-width:36px;padding-top:6px}
+.place-index .place-number{align-self:center;padding-top:0;font-size:8px}
+.place-icon{display:block;width:15px;height:15px;flex:none;opacity:.8}
+.place.active .place-icon{opacity:1}
+@media(min-width:701px){
+ .place{padding-top:6px;padding-bottom:6px;gap:10px}
+ .place-index{padding-top:4px;gap:6px;min-width:36px}
+ .place-copy{gap:3px}
+ .place-copy strong{font-size:15px;line-height:1.2;letter-spacing:-.18px}
+ .place-copy small{font-size:8px;line-height:1.3;letter-spacing:0}
+ .place-arrow{font-size:16px}
+}
+@media(min-width:1600px){.place-copy strong{font-size:16px}}
+@media(max-width:700px){
+ .place{padding-top:13px;padding-bottom:13px}
+ .place-index{padding-top:3px;gap:7px;min-width:38px}
+ .place-icon{width:15px;height:15px}
+ .place-copy strong{font-size:17.5px}
+ .place-copy small{font-size:9px}
+}

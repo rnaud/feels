@@ -4,7 +4,12 @@ import {eventPhase,eventEnvelope} from '../src/scene-events.js';
 import {framedFov} from '../src/view-framing.js';
 import {Ambience} from '../src/ambience.js';
 import {sceneDefinitions} from '../src/scene-catalog.js';
+import {sceneIcons} from '../src/scene-icons.js';
 
+test('every place has a small index icon and no stray icon remains',()=>{
+ assert.deepEqual(Object.keys(sceneIcons).sort(),Object.keys(sceneDefinitions).sort());
+ for(const svg of Object.values(sceneIcons)){assert.match(svg,/^<svg class="place-icon"/);assert.match(svg,/aria-hidden="true"/);}
+});
 test('events have quiet intervals, smooth entrances, and repeat at the same phase',()=>{
  const event={start:12,duration:5,period:43};
  assert.equal(eventPhase(0,event),-1);assert.equal(eventPhase(11.99,event),-1);

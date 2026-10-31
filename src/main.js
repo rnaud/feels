@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Ambience } from './ambience.js';
 import { createReferenceScenes } from './reference-scenes.js';
 import { sceneDefinitions } from './scene-catalog.js';
+import { sceneIcons } from './scene-icons.js';
 import './style.css';
 import { setupImmersive } from './immersive.js';
 import { framedFov } from './view-framing.js';
@@ -24,7 +25,7 @@ const studyWorlds={home:referenceStudies.home.make()};
 const sceneList=document.querySelector('#scene-list');
 Object.entries(sceneDefinitions).forEach(([key,d],index)=>{
  const button=document.createElement('button');button.className='place'+(key==='home'?' active':'');button.dataset.scene=key;button.setAttribute('aria-pressed',key==='home');
- button.innerHTML=`<span class="place-number">${String(index+1).padStart(2,'0')}</span><span class="place-copy"><strong>${d.title}</strong><small>${d.subtitle}</small></span><span class="place-arrow">↗</span>`;
+ button.innerHTML=`<span class="place-index"><span class="place-number">${String(index+1).padStart(2,'0')}</span>${sceneIcons[key]||''}</span><span class="place-copy"><strong>${d.title}</strong><small>${d.subtitle}</small></span><span class="place-arrow">↗</span>`;
  sceneList.append(button);
 });
 // Each scene has a fixed seated eye position. Only gaze rotates: never orbit.
