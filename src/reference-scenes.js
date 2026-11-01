@@ -373,13 +373,13 @@ export function createReferenceScenes({root,animations}) {
 
   // Shared drawing kit: the five newest scenes may also use the weather,
   // hatching and foliage helpers that the first scenes were built with.
-  const helpers={root,animations,group,mesh,box,ball,cyl,line,rod,ellipse,rect,shadow,window,coffee,book,tree,person,potPlant,flutterInk,occasion,ink,plain,paper,shaded,dark,rain,hatch,wallHatch,leaf,candle,rnd};
+  const helpers={root,animations,group,mesh,box,ball,cyl,line,rod,ellipse,rect,shadow,window,coffee,book,tree,person,potPlant,flutterInk,occasion,ink,plain,paper,shaded,dark,rain,hatch,wallHatch,leaf,candle,rnd,bistroTable,bentChair};
   const added=createNewScenes(helpers);
   const world=createWorldScenes(helpers);
   const factories={home,paris,train,cabin,seaside,bookstore,greenhouse,jazz,rooftop,ferry,kitchen,...added,...world};
   const views={home:{eye:[0,1.45,3.15],pitch:-.10,fov:47},paris:{eye:[0,1.45,3.15],pitch:-.08,fov:47},train:{eye:[0,1.45,2.8],pitch:-.10,fov:49},cabin:{eye:[0,1.45,3.15],pitch:-.09,fov:48},seaside:{eye:[0,1.45,3.15],pitch:-.04,fov:49},bookstore:{eye:[0,1.45,3.0],pitch:-.08,fov:48}};
   for(const key of ['greenhouse','jazz','rooftop','ferry','kitchen'])views[key]={eye:[0,1.45,3.15],pitch:-.08,fov:49};
   Object.assign(views,{laundromat:{eye:[0,1.35,3.1],pitch:-.08,fov:49},cinema:{eye:[0,1.30,3.0],pitch:.02,fov:52},picnic:{eye:[0,.82,2.65],pitch:-.12,fov:52},pottery:{eye:[0,1.37,2.8],pitch:-.14,fov:49},porch:{eye:[0,1.28,2.7],pitch:-.10,fov:52}});
-  Object.assign(views,{kyoto:{eye:[0,1.10,3.0],pitch:-.11,fov:48},marrakech:{eye:[0,1.28,3.1],pitch:-.08,fov:49},oaxaca:{eye:[0,1.26,3.15],pitch:-.09,fov:50},hanoi:{eye:[0,1.34,2.6],pitch:-.23,fov:54},kenya:{eye:[0,1.36,3.1],pitch:-.03,fov:50}});
+  Object.assign(views,{kyoto:{eye:[0,1.10,3.0],pitch:-.11,fov:48},marrakech:{eye:[0,1.28,3.1],pitch:-.08,fov:49},oaxaca:{eye:[0,1.26,3.15],pitch:-.09,fov:50},hanoi:{eye:[0,1.34,2.6],pitch:-.23,fov:54},kenya:{eye:[0,1.36,3.1],pitch:-.03,fov:50},reykjavik:{eye:[0,1.15,2.05],pitch:-.16,fov:50},mumbai:{eye:[0,1.20,3.15],pitch:-.11,fov:51},buenosaires:{eye:[0,1.32,3.2],pitch:-.14,fov:52},lisbon:{eye:[0,1.30,3.15],pitch:-.10,fov:49},havana:{eye:[0,1.22,3.0],pitch:-.12,fov:50}});
   const result={};for(const [key,make] of Object.entries(factories)){animations[key+'Study']=[];result[key]={make:()=>{seed=418+Object.keys(factories).indexOf(key)*7919;return make();},...views[key],yaw:0,reference:['home','paris','train','cabin','seaside','bookstore'].includes(key)?'references/midjourney/'+key+'.png':null,animation:key+'Study'};}return result;
 }

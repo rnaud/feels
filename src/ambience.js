@@ -22,7 +22,12 @@ const layers={
  marrakech:[[900,'lowpass',.050,.18,-.2],[300,'bandpass',.020,.33,.5],[2600,'highpass',.020,.20,-.4]],
  oaxaca:[[4200,'highpass',.018,.65,-.4],[520,'lowpass',.045,.18,.3],[180,'lowpass',.020,0,0]],
  hanoi:[[260,'lowpass',.070,.32,-.3],[950,'bandpass',.018,.22,.4],[3200,'highpass',.015,.15,0]],
- kenya:[[700,'lowpass',.045,.14,-.2],[2800,'highpass',.020,.18,.5],[1500,'lowpass',.025,.10,0]]
+ kenya:[[700,'lowpass',.045,.14,-.2],[2800,'highpass',.020,.18,.5],[1500,'lowpass',.025,.10,0]],
+ reykjavik:[[500,'lowpass',.050,.16,-.4],[1800,'highpass',.025,.12,.35],[1200,'bandpass',.020,.35,0]],
+ mumbai:[[700,'lowpass',.090,.32,-.3],[3200,'highpass',.030,.22,.3],[180,'lowpass',.025,0,0]],
+ buenosaires:[[300,'lowpass',.040,.12,-.3],[1200,'bandpass',.015,.18,.4],[4200,'highpass',.012,.20,-.4]],
+ lisbon:[[900,'lowpass',.040,.13,-.4],[2800,'highpass',.020,.18,.3],[220,'lowpass',.015,0,0]],
+ havana:[[450,'lowpass',.050,.20,-.2],[1600,'bandpass',.020,.25,.5],[3000,'highpass',.015,.15,-.5]]
 };
 export class Ambience {
  constructor(){this.ctx=null;this.enabled=false;this.volume=.4;this.nodes=[];this.spatial=new Set();this.timer=null;this.heading=0;this.eventHistory=new Map();}
@@ -106,10 +111,12 @@ export class Ambience {
   if(sound==='clack'){this.tone(640,.09,.018,'square',pan,1.45);this.tone(860,.05,.007,'square',pan,.9);}
   if(sound==='water'){this.rustle(1500,2.8,.040,pan);this.tone(900,.40,.006,'sine',pan,.70);}
   if(sound==='hum'){this.rustle(3600,.7,.005,pan);this.tone(280,.35,.003,'sawtooth',pan,1.35);}
+  if(sound==='tango'){this.tone(196,1.9,.008,'triangle',pan);this.tone(246.94,1.5,.006,'sine',pan,1.01);this.tone(293.66,1.2,.004,'sine',pan,.99);}
+  if(sound==='bell'){this.tone(1480,1.4,.006,'sine',pan,.99);this.tone(2220,.8,.003,'sine',pan,1.0);}
  }
  schedule(name){
   if(!this.enabled)return;
-  const delays={home:()=>600+Math.random()*1500,paris:()=>2600+Math.random()*5000,train:()=>690,cabin:()=>350+Math.random()*1400,seaside:()=>9000+Math.random()*8000,bookstore:()=>4000+Math.random()*6000,greenhouse:()=>600+Math.random()*1500,jazz:()=>900,rooftop:()=>7000+Math.random()*7000,ferry:()=>15000+Math.random()*9000,kitchen:()=>1000,laundromat:()=>2300,cinema:()=>7000+Math.random()*5000,picnic:()=>7000+Math.random()*6000,pottery:()=>4100,porch:()=>1700+Math.random()*2600,kyoto:()=>3600+Math.random()*4000,marrakech:()=>2400+Math.random()*3800,oaxaca:()=>3000+Math.random()*4500,hanoi:()=>1400+Math.random()*2600,kenya:()=>2600+Math.random()*3500};
+  const delays={home:()=>600+Math.random()*1500,paris:()=>2600+Math.random()*5000,train:()=>690,cabin:()=>350+Math.random()*1400,seaside:()=>9000+Math.random()*8000,bookstore:()=>4000+Math.random()*6000,greenhouse:()=>600+Math.random()*1500,jazz:()=>900,rooftop:()=>7000+Math.random()*7000,ferry:()=>15000+Math.random()*9000,kitchen:()=>1000,laundromat:()=>2300,cinema:()=>7000+Math.random()*5000,picnic:()=>7000+Math.random()*6000,pottery:()=>4100,porch:()=>1700+Math.random()*2600,kyoto:()=>3600+Math.random()*4000,marrakech:()=>2400+Math.random()*3800,oaxaca:()=>3000+Math.random()*4500,hanoi:()=>1400+Math.random()*2600,kenya:()=>2600+Math.random()*3500,reykjavik:()=>4200+Math.random()*4500,mumbai:()=>1800+Math.random()*3000,buenosaires:()=>2400+Math.random()*3200,lisbon:()=>3000+Math.random()*3600,havana:()=>2200+Math.random()*3000};
   this.timer=setTimeout(()=>{
    if(name==='laundromat')this.rustle(260,.16,.028,-.45);
    if(name==='cinema')this.rustle(900,.7,.012,.6);
@@ -138,6 +145,11 @@ export class Ambience {
    if(name==='oaxaca'){this.rustle(4800,.9,.008,-.4);this.tone(196,1.4,.006,'triangle',.3);}
    if(name==='hanoi'){this.rustle(420,.8,.030,-.4);this.tone(210,.25,.006,'sine',.5,1.1);}
    if(name==='kenya'){this.tone(2500,.22,.006,'sine',.5,1.3);this.rustle(1800,1.2,.020,-.1);}
+   if(name==='reykjavik'){this.rustle(900,3.2,.026,-.4);this.tone(1800,.20,.004,'sine',.3,1.2);}
+   if(name==='mumbai'){this.rustle(1200,1.8,.030,-.3);this.tone(2200,.30,.006,'sine',.2,.9);}
+   if(name==='buenosaires'){this.tone(196,1.8,.006,'triangle',-.3);this.tone(246.94,1.4,.004,'sine',.3,.99);this.rustle(900,.5,.012,.1);}
+   if(name==='lisbon'){this.rustle(1800,1.2,.020,-.4);this.tone(1150,.16,.004,'sine',.3,.65);}
+   if(name==='havana'){this.tone(196,1.2,.006,'triangle',.4);this.tone(293.66,.9,.004,'sine',-.2,.99);this.rustle(800,.7,.018,.2);}
    this.schedule(name);
   },(delays[name]||delays.home)());
  }

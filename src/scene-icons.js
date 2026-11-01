@@ -24,4 +24,9 @@ export const sceneIcons = {
  oaxaca: icon('<path d="M3 5c6 2 12 2 18 0"/><path d="M7 6h10v8l-2.5-2L12 14l-2.5-2L7 14V6Z"/>'),
  hanoi: icon('<path d="M12 3v2M8 7h8l-1 11H9L8 7ZM9.5 21h5M12 18v3"/>'),
  kenya: icon('<path d="M12 21V11M12 13c-3 0-5-2-5-5 3 0 5 2 5 5ZM12 13c3 0 5-2 5-5-3 0-5 2-5 5ZM12 18c-2 0-3.5-1.5-3.5-3.5 2 0 3.5 1.5 3.5 3.5Z"/>'),
+ reykjavik: icon('<path d="M4 19c3-2 5 2 8 0s5 2 8 0M4 15c3-2 5 2 8 0s5 2 8 0"/><path d="M9 10c-1-1 1-2 0-3M13 10c-1-1 1-2 0-3M17 10c-1-1 1-2 0-3"/>'),
+ mumbai: icon('<path d="M7 9h9v5a4.5 4.5 0 0 1-9 0V9Z"/><path d="M9 5c-1-1 1-2 0-3M13 5c-1-1 1-2 0-3M17 5c-1-1 1-2 0-3"/>'),
+ buenosaires: icon('<path d="M4 9h4v6H4zM16 9h4v6h-4z"/><path d="M8 10l2 2-2 2M16 10l-2 2 2 2M10 12h4"/>'),
+ lisbon: icon('<rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M3 7l9 7 9-7"/>'),
+ havana: icon('<rect x="8" y="3" width="8" height="18" rx="1.5"/><path d="M8 12h8"/><circle cx="12" cy="7" r=".8" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r=".8" fill="currentColor" stroke="none"/>'),
 };

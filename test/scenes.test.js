@@ -143,7 +143,7 @@ test('pottery wheel turns the bowl and platter together without moving its stand
  update(5);assert(platter.rotation.y>1);wheel.children.filter(child=>child!==platter).forEach((child,i)=>assert.deepEqual(state(child),base[i]));
 });
 test('occasional visitors leave the scene between events',()=>{
- for(const [key,name]of [['cinema','cinema-passer'],['porch','porch-visitor'],['marrakech','marrakech-pigeon'],['oaxaca','oaxaca-hummingbird'],['hanoi','hanoi-vendor'],['kenya','kenya-picker']]){
+ for(const [key,name]of [['cinema','cinema-passer'],['porch','porch-visitor'],['marrakech','marrakech-pigeon'],['oaxaca','oaxaca-hummingbird'],['hanoi','hanoi-vendor'],['kenya','kenya-picker'],['reykjavik','reykjavik-ripples'],['mumbai','mumbai-train'],['buenosaires','buenosaires-couple'],['lisbon','lisbon-customer'],['havana','havana-domino']]){
   const {world,update}=fixture(key),object=world.getObjectByName(name),event=world.userData.events[0];
   update(0);assert.equal(object.visible,false);update(event.start+event.duration/2);assert.equal(object.visible,true);
   update(event.start+event.duration+.1);assert.equal(object.visible,false);
